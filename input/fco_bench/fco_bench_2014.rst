@@ -11,6 +11,7 @@ Scenario
 - Total Power Demand is Constant (90GWe)
 - Total Installed Capacity is Constant (100GWe)
 - Initial State :
+
   - 0 tHM UNF available for reprocessing
   - Initial deployment : 100 LWRs
   - 400,000 tHM depleted U inventory
@@ -113,6 +114,7 @@ SFR Fuel Fabrication
   #. Nat. U
 
 - Fresh Fuel Composition (wt%)
+
   - U = 86.13
   - Pu = 13.42
   - MA = 0.45

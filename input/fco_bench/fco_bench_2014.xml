@@ -1,6 +1,13 @@
 <?xml version="1.0"?>
-<!-- 1 SourceFacility Source, 1 SinkFacility Sink -->
+<!-- A simple FCO 'recycling' benchmark for 2014.
+     Specifications are heavily detailed in a memo called 
+     'Fuel Cycle Transition Scenario Modeling Specifications'
+     Fuel Cycle Options Campaign
+     Deployment and Implementation Issue
+     January 7, 2014
 
+     A detailed spec. for this input file is present in fco_bench_2014.rst
+-->
 <simulation>
   <control>
     <duration>12</duration>

@@ -32,6 +32,7 @@ LWRs
 - Licensing time = 2 years
 - Construction time = 4 years 
 - Spent Fuel Composition (wt%)
+
   - U = 93.44
   - Pu = 1.20
   - MA = 0.10 
@@ -50,6 +51,7 @@ SFRs
 - Licensing time = 2 years
 - Construction time = 4 years 
 - Spent Fuel Composition (wt%)
+
   - U = 78.30
   - Pu = 13.56
   - MA = 0.48 
@@ -92,6 +94,7 @@ LWR Fuel Fabrication
 - Fabrication time = 1 year
 - Fissionable material source = LEU
 - Fresh Fuel Composition (wt%)
+
   - U = 100 (4.3% 235U)
 
 SFR Fuel Fabrication
@@ -99,12 +102,16 @@ SFR Fuel Fabrication
 
 - Fabrication time = 1 year
 - Fissionable material source 
+
   #. SFR UNF
   #. LWR UNF
+
 - Fertile material source 
+
   #. Rep. U
   #. Dep. U
   #. Nat. U
+
 - Fresh Fuel Composition (wt%)
   - U = 86.13
   - Pu = 13.42

@@ -51,19 +51,44 @@ SFRs
 - Cycle length = 1.3 calendar years
 - Licensing time = 2 years
 - Construction time = 4 years 
-- Spent Fuel Composition (wt%)
+- Input:
+    
+  - fresh_sfr_fuel
 
-  - U = 78.30
-  - Pu = 13.56
-  - MA = 0.48 
-  - FP = 7.66
+- Output:
+
+  - spent_sfr_fuel
+  
+    - composition (wt%)
+    - U = 78.30
+    - Pu = 13.56
+    - MA = 0.48 
+    - FP = 7.66
 
 
-UNF Cooling Storage
+LWR UNF Cooling Storage
 ...................
 
 - LWR fuel must be cooled for 4 years before reprocessing
+- Input: 
+  
+  - lwr_unf
+
+- Output: 
+
+  - lwr_unf_cool
+
+SFR UNF Cooling Storage
+...................
+
 - SFR fuel must be cooled for 1 year before reprocessing
+- Input: 
+  
+  - sfr_unf
+
+- Output: 
+
+  - sfr_unf_cool
 
 
 LWR UNF Reprocessing
@@ -72,6 +97,14 @@ LWR UNF Reprocessing
 - Start Date : 2025
 - 2000 tHM/year Capacity
 - There are no reprocessing losses
+- Input: 
+  
+  - lwr_unf_cool
+
+- Output: 
+
+  - rep_u
+  - rep_tru
 
 
 SFR UNF Reprocessing
@@ -80,6 +113,14 @@ SFR UNF Reprocessing
 - Start Date : when needed
 - Unlimited Capacity
 - There are no reprocessing losses
+- Input:
+  
+  - sfr_unf_cool
+
+- Output: 
+
+  - rep_u
+  - rep_tru
 
 
 Enrichment

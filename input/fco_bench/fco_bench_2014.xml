@@ -284,7 +284,7 @@
           <name>power</name>
           <demand>
             <type>linear</type>
-            <parameters>10 10</parameters>
+            <parameters>1 1</parameters>
           </demand>
         </commodity>
       </GrowthRegion>

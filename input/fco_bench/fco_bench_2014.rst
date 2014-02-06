@@ -98,7 +98,7 @@ SFRs
     - FP = 7.66
 
 
-LWR UNF Cooling Storage
+LWR UNF Wet Storage
 ...................
 
 - LWR fuel must be cooled for 4 years before reprocessing
@@ -110,7 +110,7 @@ LWR UNF Cooling Storage
 
   - **lwr_unf_cool**
 
-SFR UNF Cooling Storage
+SFR UNF Wet Storage
 ...................
 
 - SFR fuel must be cooled for 1 year before reprocessing

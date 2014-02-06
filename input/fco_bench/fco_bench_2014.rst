@@ -17,6 +17,28 @@ Scenario
   - 400,000 tHM depleted U inventory
   - Unlimited natural U inventory
 
+Commodities
+-----------
+
+==============  ==============  ==============
+Commodity       Offered By      Requested By
+==============  ==============  ==============
+nat_u           Mine            Enrichment 
+leu	        Enrichment	LWRFuelFab
+dep_u	        Enrichment	SFRFuelFab
+fresh_lwr_fuel	LWRFuelFab	LWR
+fresh_sfr_fuel	SFRFuelFab	SFR
+lwr_unf	        LWR	        LWRWetStorage	
+sfr_unf	        SFR	        SFRWetStorage	
+lwr_unf_cool	LWRWetStorage	LWRSeparations
+sfr_unf_cool	SFRWetStorage	SFRSeparations	
+rep_lwr_u	LWRSeparations	SFRFuelFab
+rep_lwr_tru	LWRSeparations	SFRFuelFab
+rep_sfr_u	SFRSeparations	SFRFuelFab
+rep_sfr_tru	SFRSeparations	SFRFuelFab
+==============  ==============  ==============
+
+
 
 Facilities
 ----------

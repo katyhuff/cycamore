@@ -14,7 +14,7 @@
     <startmonth>1</startmonth>
     <startyear>2014</startyear>
     <simstart>0</simstart>
-    <decay>2</decay>
+    <decay>2</decay> <!-- decay is off -->
   </control>
 
   <commodity>
@@ -147,9 +147,9 @@
          <outcommodity>lwr_unf</outcommodity>
          <outrecipe>lwr_unf_recipe</outrecipe>
         </fuel>
-        <processtime>1</processtime>
-        <nbatches>4</nbatches>
-        <batchsize>2</batchsize>
+        <processtime>1.5</processtime>
+        <nbatches>3</nbatches>
+        <batchsize>19.91</batchsize>
         <commodity_production>
           <commodity>power</commodity>
           <capacity>90</capacity>
@@ -172,9 +172,9 @@
          <outcommodity>sfr_unf</outcommodity>
          <outrecipe>sfr_unf_recipe</outrecipe>
         </fuel>
-        <processtime>1</processtime>
-        <nbatches>4</nbatches>
-        <batchsize>2</batchsize>
+        <processtime>1.2</processtime>
+        <nbatches>4</nbatches> <!-- In cyclus, this must be an integer -->
+        <batchsize>3.25875</batchsize> <!-- 3.95*(3.3/4) -->
         <commodity_production>
           <commodity>power</commodity>
           <capacity>30</capacity>
@@ -238,7 +238,7 @@
           <outcommodity>rep_lwr_u</outcommodity>
           <recipe>rep_lwr_u_recipe</recipe>
         </output>
-        <capacity>2000</capacity>
+        <capacity>2000000</capacity>
       </CommodConvertFacility>
     </model>
     <incommodity>lwr_unf</incommodity>
@@ -259,7 +259,7 @@
           <outcommodity>rep_sfr_u</outcommodity>
           <recipe>rep_sfr_u_recipe</recipe>
         </output>
-        <capacity>2000</capacity>
+        <capacity>2000000</capacity>
       </CommodConvertFacility>
     </model>
     <incommodity>sfr_unf</incommodity>
@@ -268,9 +268,16 @@
 
   <region>
     <name>SingleRegion</name>
-    <allowedfacility>Source</allowedfacility>
-    <allowedfacility>Reactor</allowedfacility>
-    <allowedfacility>Sink</allowedfacility>
+    <allowedfacility>Mine</allowedfacility>
+    <allowedfacility>Enrichment</allowedfacility>
+    <allowedfacility>LWRFuelFab</allowedfacility>
+    <allowedfacility>SFRFuelFab</allowedfacility>
+    <allowedfacility>LWR</allowedfacility>
+    <allowedfacility>SFR</allowedfacility>
+    <allowedfacility>LWRWetStorage</allowedfacility>
+    <allowedfacility>SFRWetStorage</allowedfacility>
+    <allowedfacility>LWRSeparations</allowedfacility>
+    <allowedfacility>LWRSeparations</allowedfacility>
     <model>
       <GrowthRegion>
         <commodity>
@@ -284,17 +291,56 @@
     </model>
     <institution>
       <name>SingleInstitution</name>
-      <availableprototype>Source</availableprototype>
-      <availableprototype>Reactor</availableprototype>
-      <availableprototype>Sink</availableprototype>
+      <availableprototype>Mine</availableprototype>
+      <availableprototype>Enrichment</availableprototype>
+      <availableprototype>LWRFuelFab</availableprototype>
+      <availableprototype>SFRFuelFab</availableprototype>
+      <availableprototype>LWR</availableprototype>
+      <availableprototype>SFR</availableprototype>
+      <availableprototype>LWRWetStorage</availableprototype>
+      <availableprototype>SFRWetStorage</availableprototype>
+      <availableprototype>LWRSeparations</availableprototype>
+      <availableprototype>LWRSeparations</availableprototype>
       <initialfacilitylist>
         <entry>
-          <prototype>Source</prototype>
+          <prototype>Mine</prototype>
           <number>1</number>
         </entry>
         <entry>
-          <prototype>Sink</prototype>
+          <prototype>Enrichment</prototype>
           <number>1</number>
+        </entry>
+        <entry>
+          <prototype>LWRFuelFab</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>SFRFuelFab</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>LWRWetStorage</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>SFRWetStorage</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>LWRSeparations</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>SFRSeparations</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>Enrichment</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>LWR</prototype>
+          <number>100</number>
         </entry>
       </initialfacilitylist>
       <model>

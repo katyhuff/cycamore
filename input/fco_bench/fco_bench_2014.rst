@@ -38,6 +38,8 @@ rep_sfr_u	SFRSeparations	SFRFuelFab
 rep_sfr_tru	SFRSeparations	SFRFuelFab
 ==============  ==============  ==============
 
+Note that the exact compositions of U and TRU were not given. These will be 
+approximated by representative isotopes in the Cyclus definition. 
 
 
 Facilities

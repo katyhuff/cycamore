@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- A simple FCO 'recycling' benchmark for 2014.
+<!-- An FCO 'recycling' benchmark for 2014.
      Specifications are heavily detailed in a memo called 
      'Fuel Cycle Transition Scenario Modeling Specifications'
      Fuel Cycle Options Campaign
@@ -10,69 +10,260 @@
 -->
 <simulation>
   <control>
-    <duration>12</duration>
+    <duration>1200</duration>
     <startmonth>1</startmonth>
-    <startyear>2000</startyear>
+    <startyear>2014</startyear>
     <simstart>0</simstart>
     <decay>2</decay>
   </control>
 
   <commodity>
-    <name>commodity</name>
+    <name>nat_u</name>
+  </commodity>
+  <commodity>
+    <name>leu</name>
+  </commodity>
+  <commodity>
+    <name>fresh_lwr_fuel</name>
+  </commodity>
+  <commodity>
+    <name>fresh_sfr_fuel</name>
+  </commodity>
+  <commodity>
+    <name>lwr_unf</name>
+  </commodity>
+  <commodity>
+    <name>sfr_unf</name>
+  </commodity>
+  <commodity>
+    <name>lwr_unf_cool</name>
+  </commodity>
+  <commodity>
+    <name>sfr_unf_cool</name>
+  </commodity>
+  <commodity>
+    <name>rep_lwr_u</name>
+  </commodity>
+  <commodity>
+    <name>rep_lwr_tru</name>
+  </commodity>
+  <commodity>
+    <name>rep_sfr_u</name>
+  </commodity>
+  <commodity>
+    <name>rep_sfr_tru</name>
   </commodity>
 
   <facility>
-    <name>Source</name>
+    <name>Mine</name>
     <model>
       <SourceFacility>
         <output>
-          <outcommodity>incommodity</outcommodity>
-          <output_capacity>20</output_capacity>
-          <recipe>commod_recipe</recipe>
+          <outcommodity>nat_u</outcommodity>
+          <output_capacity>200000</output_capacity>
+          <recipe>nat_u_recipe</recipe>
         </output>
       </SourceFacility>
     </model>
-    <outcommodity>incommodity</outcommodity>
+    <outcommodity>nat_u</outcommodity>
   </facility>
 
   <facility>
-    <name>Reactor</name>
+    <name>Enrichment</name>
+    <model>
+      <EnrichmentFacility>
+        <input>
+          <incommodity>nat_u</incommodity>
+          <inrecipe>nat_u</inrecipe>
+        </input>
+        <output>
+          <outcommodity>leu</outcommodity>
+          <tails_assay>0.0025</tails_assay>
+        </output>
+      </EnrichmentFacility>
+    </model>
+    <incommodity>nat_u</incommodity>
+    <outcommodity>leu</outcommodity>
+  </facility> 
+
+  <facility>
+    <name>LWRFuelFab</name>
+    <model>
+      <CommodConvertFacility>
+        <input>
+          <incommodity>leu</incommodity>
+          <recipe>leu_recipe</recipe>
+        </input>
+        <output>
+          <outcommodity>fresh_lwr_fuel</outcommodity>
+          <recipe>fresh_lwr_fuel_recipe</recipe>
+        </output>
+        <delay>12</delay>
+      </CommodConvertFacility>
+    </model>
+    <incommodity>leu</incommodity>
+    <outcommodity>fresh_lwr_fuel</outcommodity>
+  </facility>
+
+  <facility>
+    <name>SFRFuelFab</name>
+    <model>
+      <FCOFuelFabFacility>
+        <input>
+          <incommodity>rep_sfr_tru</incommodity>
+          <recipe>rep_sfr_tru_recipe</recipe>
+          <incommodity>rep_lwr_tru</incommodity>
+          <recipe>rep_lwr_tru_recipe</recipe>
+          <incommodity>rep_sfr_u</incommodity>
+          <recipe>rep_sfr_u_recipe</recipe>
+          <incommodity>nat_u</incommodity>
+          <recipe>nat_u_recipe</recipe>
+          <incommodity>dep_u</incommodity>
+          <recipe>dep_u_recipe</recipe>
+        </input>
+        <output>
+          <outcommodity>fresh_sfr_fuel</outcommodity>
+          <recipe>fresh_sfr_fuel_recipe</recipe>
+        </output>
+        <delay>12</delay>
+      </CommodConvertFacility>
+    </model>
+    <incommodity>rep_sfr_tru</incommodity>
+    <incommodity>rep_lwr_tru</incommodity>
+    <incommodity>rep_sfr_u</incommodity>
+    <incommodity>nat_u</incommodity>
+    <incommodity>dep_u</incommodity>
+    <outcommodity>fresh_sfr_fuel</outcommodity>
+  </facility>
+
+  <facility>
+    <name>LWR</name>
     <lifetime>1</lifetime>
     <model>
       <BatchReactor>
         <fuel>
-         <incommodity>incommodity</incommodity>
-         <inrecipe>commod_recipe</inrecipe>
-         <outcommodity>outcommodity</outcommodity>
-         <outrecipe>commod_recipe</outrecipe>
+         <incommodity>fresh_lwr_fuel</incommodity>
+         <inrecipe>fresh_lwr_fuel_recipe</inrecipe>
+         <outcommodity>lwr_unf</outcommodity>
+         <outrecipe>lwr_unf_recipe</outrecipe>
         </fuel>
         <processtime>1</processtime>
-        <nbatches>1</nbatches>
+        <nbatches>4</nbatches>
         <batchsize>2</batchsize>
         <commodity_production>
           <commodity>power</commodity>
-          <capacity>10</capacity>
-          <cost>10</cost>
+          <capacity>90</capacity>
+          <cost>90</cost>
         </commodity_production>
       </BatchReactor>
     </model>
-    <incommodity>incommodity</incommodity>
-    <outcommodity>outcommodity</outcommodity>
+    <incommodity>fresh_lwr_fuel</incommodity>
+    <outcommodity>lwr_unf</outcommodity>
   </facility>
-  
+
   <facility>
-    <name>Sink</name>
+    <name>SFR</name>
+    <lifetime>1</lifetime>
     <model>
-      <SinkFacility>
-        <input>
-          <commodities>
-            <incommodity>outcommodity</incommodity>
-          </commodities>
-          <input_capacity>20</input_capacity>
-        </input>
-      </SinkFacility>
+      <BatchReactor>
+        <fuel>
+         <incommodity>fresh_sfr_fuel</incommodity>
+         <inrecipe>fresh_sfr_fuel_recipe</inrecipe>
+         <outcommodity>sfr_unf</outcommodity>
+         <outrecipe>sfr_unf_recipe</outrecipe>
+        </fuel>
+        <processtime>1</processtime>
+        <nbatches>4</nbatches>
+        <batchsize>2</batchsize>
+        <commodity_production>
+          <commodity>power</commodity>
+          <capacity>30</capacity>
+          <cost>30</cost>
+        </commodity_production>
+      </BatchReactor>
     </model>
-    <incommodity>outcommodity</incommodity>
+    <incommodity>fresh_sfr_fuel</incommodity>
+    <outcommodity>sfr_unf</outcommodity>
+  </facility>
+
+  <facility>
+    <name>LWRWetStorage</name>
+    <model>
+      <CommodConvertFacility>
+        <input>
+          <incommodity>lwr_unf</incommodity>
+          <recipe>lwr_unf_recipe</recipe>
+        </input>
+        <output>
+          <outcommodity>lwr_unf_cool</outcommodity>
+          <recipe>lwr_unf_recipe</recipe>
+        </output>
+        <delay>48</delay>
+      </CommodConvertFacility>
+    </model>
+    <incommodity>lwr_unf</incommodity>
+    <outcommodity>lwr_unf_fuel</outcommodity>
+  </facility>
+
+  <facility>
+    <name>SFRWetStorage</name>
+    <model>
+      <CommodConvertFacility>
+        <input>
+          <incommodity>sfr_unf</incommodity>
+          <recipe>sfr_unf_recipe</recipe>
+        </input>
+        <output>
+          <outcommodity>sfr_unf_cool</outcommodity>
+          <recipe>sfr_unf_recipe</recipe>
+        </output>
+        <delay>12</delay>
+      </CommodConvertFacility>
+    </model>
+    <incommodity>sfr_unf</incommodity>
+    <outcommodity>sfr_unf_fuel</outcommodity>
+  </facility>
+
+  <facility>
+    <name>LWRSeparations</name>
+    <model>
+      <SeparationsFacility>
+        <input>
+          <incommodity>lwr_unf_cool</incommodity>
+          <recipe>lwr_unf_recipe</recipe>
+        </input>
+        <output>
+          <outcommodity>rep_lwr_tru</outcommodity>
+          <recipe>rep_lwr_tru_recipe</recipe>
+          <outcommodity>rep_lwr_u</outcommodity>
+          <recipe>rep_lwr_u_recipe</recipe>
+        </output>
+        <capacity>2000</capacity>
+      </CommodConvertFacility>
+    </model>
+    <incommodity>lwr_unf</incommodity>
+    <outcommodity>lwr_unf_fuel</outcommodity>
+  </facility>
+
+  <facility>
+    <name>LWRSeparations</name>
+    <model>
+      <SeparationsFacility>
+        <input>
+          <incommodity>sfr_unf_cool</incommodity>
+          <recipe>sfr_unf_recipe</recipe>
+        </input>
+        <output>
+          <outcommodity>rep_sfr_tru</outcommodity>
+          <recipe>rep_sfr_tru_recipe</recipe>
+          <outcommodity>rep_sfr_u</outcommodity>
+          <recipe>rep_sfr_u_recipe</recipe>
+        </output>
+        <capacity>2000</capacity>
+      </CommodConvertFacility>
+    </model>
+    <incommodity>sfr_unf</incommodity>
+    <outcommodity>sfr_unf_fuel</outcommodity>
   </facility>
 
   <region>

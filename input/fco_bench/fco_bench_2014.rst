@@ -17,6 +17,7 @@ Scenario
   - 400,000 tHM depleted U inventory
   - Unlimited natural U inventory
 
+
 Facilities
 ----------
 
@@ -32,12 +33,20 @@ LWRs
 - Cycle length = 1.5 calendar years
 - Licensing time = 2 years
 - Construction time = 4 years 
-- Spent Fuel Composition (wt%)
+- Input:
+    
+  - **fresh_lwr_fuel**
 
-  - U = 93.44
-  - Pu = 1.20
-  - MA = 0.10 
-  - FP = 5.26
+- Output:
+
+  - power
+  - **spent_lwr_fuel**
+  
+    - composition (wt%)
+    - U = 93.44
+    - Pu = 1.20
+    - MA = 0.10 
+    - FP = 5.26
 
 SFRs
 ....
@@ -53,11 +62,12 @@ SFRs
 - Construction time = 4 years 
 - Input:
     
-  - fresh_sfr_fuel
+  - **fresh_sfr_fuel**
 
 - Output:
 
-  - spent_sfr_fuel
+  - **power**
+  - **spent_sfr_fuel**
   
     - composition (wt%)
     - U = 78.30
@@ -72,11 +82,11 @@ LWR UNF Cooling Storage
 - LWR fuel must be cooled for 4 years before reprocessing
 - Input: 
   
-  - lwr_unf
+  - **lwr_unf**
 
 - Output: 
 
-  - lwr_unf_cool
+  - **lwr_unf_cool**
 
 SFR UNF Cooling Storage
 ...................
@@ -84,11 +94,11 @@ SFR UNF Cooling Storage
 - SFR fuel must be cooled for 1 year before reprocessing
 - Input: 
   
-  - sfr_unf
+  - **sfr_unf**
 
 - Output: 
 
-  - sfr_unf_cool
+  - **sfr_unf_cool**
 
 
 LWR UNF Reprocessing
@@ -99,12 +109,12 @@ LWR UNF Reprocessing
 - There are no reprocessing losses
 - Input: 
   
-  - lwr_unf_cool
+  - **lwr_unf_cool**
 
 - Output: 
 
-  - rep_u
-  - rep_tru
+  - **rep_lwr_u**
+  - **rep_lwr_tru**
 
 
 SFR UNF Reprocessing
@@ -115,12 +125,12 @@ SFR UNF Reprocessing
 - There are no reprocessing losses
 - Input:
   
-  - sfr_unf_cool
+  - **sfr_unf_cool**
 
 - Output: 
 
-  - rep_u
-  - rep_tru
+  - **rep_sfr_u**
+  - **rep_sfr_tru**
 
 
 Enrichment
@@ -129,33 +139,51 @@ Enrichment
 - Natural U enrichment = 0.711 wt%
 - Depleted U enrichment =  0.25 wt%
 - ''Enrichment Time'' for LWR fuel = 1 year
+- Input : 
+
+  - **nat_u**
+    
+- Output : 
+
+  - **leu**
+  - **dep_u**
 
 LWR Fuel Fabrication
 ....................
 
 - Fabrication time = 1 year
 - Fissionable material source = LEU
-- Fresh Fuel Composition (wt%)
+- Input:
 
-  - U = 100 (4.3% 235U)
+  - **leu** (4.3% 235U)
+
+- Output:
+
+  - **fresh_lwr_fuel**
+
 
 SFR Fuel Fabrication
 ....................
 
 - Fabrication time = 1 year
-- Fissionable material source 
+- Input (by preference):
 
-  #. SFR UNF
-  #. LWR UNF
+  - fissile_mat
 
-- Fertile material source 
+    #. **rep_sfr_tru**
+    #. **rep_lwr_tru**
+  
+  - fertile_mat
 
-  #. Rep. U
-  #. Dep. U
-  #. Nat. U
+    #. **rep_sfr_u**
+    #. **rep_lwr_u**
+    #. **dep_u**
+    #. **nat_u**
 
-- Fresh Fuel Composition (wt%)
+- Output : 
 
+  - **fresh_sfr_fuel**
+  - Fresh Fuel Composition (wt%):
   - U = 86.13
   - Pu = 13.42
   - MA = 0.45

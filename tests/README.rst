@@ -26,7 +26,7 @@ First, generate the new databases:
 
 .. code-block:: bash
 
-  $ python refs.py gen
+  $ python ref.py gen
 
 Next, rename the databases:
 
@@ -56,10 +56,30 @@ Now, update (add) them on the regression test server
 
 .. code-block:: bash
 
-  $ python refs.py add *.h5
+  $ python ref.py add *.h5
+
+Next, add the reflist file you just altered:
+
+.. code-block:: bash
+
+  $ git add reflist.json
+  $ git commit -m "updated reflist.json"
+  $ git push upstream develop
 
 Finally, feel free to clean up after yourself
 
 .. code-block:: bash
 
   $ rm *.h5
+
+Nondeterminisitic Analysis
+==========================
+
+An `analysis` python module can assist in analyzing the determinism of Cyclus
+output. It does so by running the regression tests some number of times and
+analyzing the frequency of nondeterminism of output tables and columns within
+those tables. See the module's help: 
+
+.. code-block:: python
+
+  $ python analysis.py -h

@@ -1,6 +1,6 @@
 // commod_converter.h
-#ifndef CYCAMORE_MODELS_BATCHREACTOR_BATCH_REACTOR_H_
-#define CYCAMORE_MODELS_BATCHREACTOR_BATCH_REACTOR_H_
+#ifndef CYCAMORE_MODELS_COMMODCONVERTER _COMMOD_CONVERTER _H_
+#define CYCAMORE_MODELS_COMMODCONVERTER _COMMOD_CONVERTER _H_
 
 #include <map>
 #include <queue>
@@ -30,83 +30,79 @@ namespace cycamore {
 /// @class CommodConverter
 ///
 /// @section introduction Introduction
-/// The CommodConverter is a facility that models batch processing. It has three
-/// storage areas which hold batches of materials: reserves, core, and
-/// storage. Incoming material orders are placed into reserves, from which the
-/// core is provided batches during refueling. When a process has been
-/// completed, batches are moved from the core into storage. Requests for
-/// material are bid upon based on the state of the material in storage.
+/// The CommodConverter is a facility that receives commodities, holds onto them  
+/// for some number of months, offers them to the market of the new commodity. It 
+/// has three  stocks areas which hold batches of commodities: reserves, 
+/// processing, and  stocks. Incoming commodity orders are placed into reserves, 
+/// from which the  processing area is populated. When a process (some number of 
+/// months spent waiting)  has been completed, the commodity is converted and 
+/// moved into stocks. Requests for  commodities are bid upon based on the state 
+/// of the commodities in the stocks.  
 ///
-/// The Reactor can manage multiple input-output commodity pairs, and keeps
-/// track of the pair that each batch belongs to. Batches move through the
-/// system independently of their input/output commodity types, but when batches
-/// reach the storage area, they are offered as bids depedent on their output
+/// The CommodConverter can manage multiple input-output commodity pairs, and keeps
+/// track of the pair that each batch belongs to. Commodities move through the
+/// system independently of their input/output commodity types, but when they
+/// reach the stocks area, they are offered as bids depedent on their output
 /// commodity type.
 ///
 /// @section params Parameters
 /// A CommodConverter has the following tuneable parameters:
-///   #. batch_size : the size of batches
-///   #. n_batches : the number of batches that constitute a full core
+///   #. batch_size : the size of batches <nix>
+///   #. n_batches : the number of batches that constitute a full processing <nix>
 ///   #. process_time : the number of timesteps a batch process takes
 ///   #. n_load : the number of batches processed at any given time (i.e.,
-///   n_load is unloaded and reloaded after a process is finished
-///   #. n_reserves : the preferred number of batches in reserve
+///   n_load is unloaded and reloaded after a process is finished <nix?>
+///   #. n_reserves : the preferred number of batches in reserve <nix>
 ///   #. preorder_time : the amount of time before a process is finished to
-///   order fuel
-///   #. refuel_time : the number of timesteps required to reload the core after
-///   a process has finished
+///   order fuel <always order>
+///   #. refuel_time : the number of timesteps required to reload the processing after
+///   a process has finished <0>
 /// 
 /// The CommodConverter also maintains a cyclus::CommodityRecipeContext, which
 /// allows it to track incommodity-inrecipe/outcommodity-outrecipe groupings.
+/// <keep?>
 /// 
 /// @section operation Operation  
-/// After a CommodConverter enters the simulation, it will begin processing its
-/// first batch load on the Tick after its core has been filled.
+/// After a CommodConverter enters the simulation, it will begin requesting all 
+/// incommodities.
+///
+/// As soon as it receives a commodity, that commodity is placed in the 
+/// processing storage area. 
 /// 
-/// It will maintain its "processing" state for process_time() time steps,
-/// including the timestep on which it began. It will unload n_load() batches
-/// from its core on the Tock of that time step. For example, if a reactor
-/// begins its process at time 1 and has a process_time equal to 10, it will
-/// unload batches on the Tock of time step 10.
+/// On the tick of the timestep in which that incommodity's time is up, it is 
+/// converted to the outcommodity type, by simply changing the commodity name. 
+/// Then, it is offered to the  outcommodity market.
 /// 
-/// Starting at the next time step, the reactor will attempt to refuel itself
-/// from whatever batches exist in its reserves container (i.e, already-ordered
-/// fuel). Assuming its core buffer has been refueled, it will wait reload_time
-/// timesteps. On the tick of the following timestep, the process will begin
-/// again. Using the previous example, assume that the refuel_time is equal to
-/// two and that the core buffer has been refueled appropriately. The refueling
-/// "phase" will begin on time step 11, and will end on the Tock of time step
-/// 12. The process will begin again on time step 13 (analagous to its state
-/// originally at time step 1).
+/// This happens continuously, in each timestep. That is, this facility is 
+/// greedy. It seeks to collect as much of the incommodity as possible and to 
+/// eject as much of the outcommodity as possible. 
 /// 
 /// @section end End of Life
 /// If the current time step is equivalent to the facility's lifetime, the
-/// reactor will move all material in its core to its storage containers.
-///
+/// reactor will move all material in its processing to its stocks containers, 
+/// converted or not.
+/// 
 /// @section requests Requests
 /// A CommodConverter will make as many requests as it has possible input
 /// commodities. It provides a constraint based on a total request amount
-/// determined by its batch_size, n_load, and n_reserves parameters. The
+/// determined by its processing capacity and n_reserves parameters. The
 /// n_reserves parameter allows modelers to order fuel in advance of when it is
-/// needed. The fuel order size is batch_size * (n_load + n_reserves). These
-/// requests are made if the current simulation time is less than or equal to
-/// the reactor's current order_time(), which is determined by the ending time
-/// of the current process less a look ahead time, the preorder_time().
+/// needed. The order size is capacity +  n_reserves/process_time? These
+/// requests are not made if the current simulation time is less than or equal to
+/// the facility's current order_time(), which is determined by the ending time
+/// of the current process less a look ahead time, the preorder_time()? <nix>
 ///
-/// A special case exists when the reactor first enters the simulation, where it
-/// will order as much fuel as is needed to fill its full core.
-/// 
 /// @section bids Bids
 /// A CommodConverter will bid on any request for any of its out_commodities, as
-/// long as there is a positive quantity of material in its storage area
+/// long as there is a positive quantity of material in its stocks area
 /// associated with that output commodity.
 ///
 /// @section ics Initial Conditions
 /// A CommodConverter can be deployed with any number of batches in its reserve,
-/// core, and storage buffers. Recipes and commodities for each of these batch
+/// processing, and stocks buffers. Recipes and commodities for each of these batch
 /// groupings must be specified.
 ///
-/// @todo add decommissioning behavior if material is still in storage
+/// @todo add decommissioning behavior if material is still in stocks
 ///
 /// @warning preference time changing is based on *full simulation time*, not
 /// relative time
@@ -124,14 +120,13 @@ class CommodConverter : public cyclus::FacilityModel,
   enum Phase {
     INITIAL, ///< The initial phase, after the facility is built but before it is
              /// filled
-    PROCESS, ///< The processing phase
-    WAITING, ///< The waiting phase, while the factility is waiting for fuel
-             /// between processes
+    PROCESS, ///< The processing phase, which this facility should be in all the time.
+    WAITING, ///< The waiting phase, while the factility has nothing in its reserves
   };
 
   /// @brief a struct for initial conditions
   struct InitCond {
-   InitCond() : reserves(false), core(false), storage(false) {};
+   InitCond() : reserves(false), processing(false), stocks(false) {};
 
     void AddReserves(int n, std::string rec, std::string commod) {
       reserves = true;
@@ -141,17 +136,17 @@ class CommodConverter : public cyclus::FacilityModel,
     }
 
     void AddCore(int n, std::string rec, std::string commod) {
-      core = true;
-      n_core = n;
-      core_rec = rec;
-      core_commod = commod;
+      processing = true;
+      n_processing = n;
+      processing_rec = rec;
+      processing_commod = commod;
     }
 
-    void AddStorage(int n, std::string rec, std::string commod) {
-      storage = true;
-      n_storage = n;
-      storage_rec = rec;
-      storage_commod = commod;
+    void AddStocks(int n, std::string rec, std::string commod) {
+      stocks = true;
+      n_stocks = n;
+      stocks_rec = rec;
+      stocks_commod = commod;
     }
 
     bool reserves;
@@ -159,15 +154,15 @@ class CommodConverter : public cyclus::FacilityModel,
     std::string reserves_rec;
     std::string reserves_commod;
 
-    bool core;
-    int n_core;
-    std::string core_rec;
-    std::string core_commod;
+    bool processing;
+    int n_processing;
+    std::string processing_rec;
+    std::string processing_commod;
 
-    bool storage;
-    int n_storage;
-    std::string storage_rec;
-    std::string storage_commod;
+    bool stocks;
+    int n_stocks;
+    std::string stocks_rec;
+    std::string stocks_commod;
   };
   
   /* --- Module Members --- */
@@ -236,8 +231,8 @@ class CommodConverter : public cyclus::FacilityModel,
   /* --- */
 
   /* --- CommodConverter Members --- */
-  /// @return the total number of batches in storage
-  int StorageCount();
+  /// @return the total number of batches in stocks
+  int StocksCount();
   
   /// @brief the processing time required for a full batch process before
   /// refueling
@@ -281,7 +276,7 @@ class CommodConverter : public cyclus::FacilityModel,
   inline int n_reserves() const { return n_reserves_; }
 
   /// @brief the number of batches currently in the reactor
-  inline int n_core() const { return core_.count(); }
+  inline int n_processing() const { return processing_.count(); }
 
   /// @brief the size of a batch 
   inline void batch_size(double size) { batch_size_ = size; }
@@ -310,7 +305,7 @@ class CommodConverter : public cyclus::FacilityModel,
   }
 
  protected:
-  /// @brief moves a batch from core_ to storage_
+  /// @brief moves a batch from processing_ to stocks_
   virtual void MoveBatchOut_();
 
   /// @brief gets bids for a commodity from a buffer
@@ -324,22 +319,22 @@ class CommodConverter : public cyclus::FacilityModel,
       double qty,
       cyclus::ResourceBuff* buffer);
   
-  /// @brief a cyclus::ResourceBuff for material while they are inside the core,
+  /// @brief a cyclus::ResourceBuff for material while they are inside the processing,
   /// with all materials guaranteed to be of batch_size_
-  cyclus::ResourceBuff core_;
+  cyclus::ResourceBuff processing_;
 
-  /// @brief a cyclus::ResourceBuff for material once they leave the core.
-  /// there is one storage for each outcommodity
-  /// @warning no guarantee can be made to the size of each item in storage_, as
+  /// @brief a cyclus::ResourceBuff for material once they leave the processing.
+  /// there is one stocks for each outcommodity
+  /// @warning no guarantee can be made to the size of each item in stocks_, as
   /// requests can be met that are larger or smaller than batch_size_
-  std::map<std::string, cyclus::ResourceBuff> storage_;
+  std::map<std::string, cyclus::ResourceBuff> stocks_;
 
  private:
   /// @brief refuels the reactor until it is full or reserves_ is out of
-  /// batches. If the core is full after refueling, the Phase is set to PROCESS.
+  /// batches. If the processing is full after refueling, the Phase is set to PROCESS.
   void Refuel_();
 
-  /// @brief moves a batch from reserves_ to core_
+  /// @brief moves a batch from reserves_ to processing_
   void MoveBatchIn_();
   
   /// @brief construct a request portfolio for an order of a given size
@@ -387,7 +382,7 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief allows only batches to enter reserves_
   cyclus::Material::Ptr spillover_;
   
-  /// @brief a cyclus::ResourceBuff for material before they enter the core,
+  /// @brief a cyclus::ResourceBuff for material before they enter the processing,
   /// with all materials guaranteed to be of batch_size_
   cyclus::ResourceBuff reserves_;
 
@@ -397,4 +392,4 @@ class CommodConverter : public cyclus::FacilityModel,
 
 } // namespace cycamore
 
-#endif // CYCAMORE_MODELS_BATCHREACTOR_BATCH_REACTOR_H_
+#endif // CYCAMORE_MODELS_COMMODCONVERTER _COMMOD_CONVERTER _H_

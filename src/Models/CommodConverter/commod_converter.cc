@@ -27,10 +27,7 @@ CommodConverter::CommodConverter(cyclus::Context* ctx)
       refuel_time_(0),
       start_time_(-1),
       to_begin_time_(std::numeric_limits<int>::max()),
-      n_batches_(1),
-      n_load_(1),
       n_reserves_(0),
-      batch_size_(1),
       phase_(INITIAL) {
   if (phase_names_.empty()) {
     SetUpPhaseNames_();
@@ -59,73 +56,9 @@ std::string CommodConverter::schema() {
       "  <element name=\"processtime\">              \n"
       "    <data type=\"nonNegativeInteger\"/>       \n"
       "  </element>                                  \n"
-      "  <element name=\"nbatches\">                 \n"
-      "    <data type=\"nonNegativeInteger\"/>       \n"
-      "  </element>                                  \n"
-      "  <element name =\"batchsize\">               \n"
-      "    <data type=\"double\"/>                   \n"
-      "  </element>                                  \n"
-      "  <optional>                                  \n"
-      "    <element name =\"refueltime\">            \n"
-      "      <data type=\"nonNegativeInteger\"/>     \n"
-      "    </element>                                \n"
-      "  </optional>                                 \n"
       "  <optional>                                  \n"
       "    <element name =\"orderlookahead\">        \n"
       "      <data type=\"nonNegativeInteger\"/>     \n"
-      "    </element>                                \n"
-      "  </optional>                                 \n"
-      "  <optional>                                  \n"
-      "    <element name =\"norder\">                \n"
-      "      <data type=\"nonNegativeInteger\"/>     \n"
-      "    </element>                                \n"
-      "  </optional>                                 \n"
-      "  <optional>                                  \n"
-      "    <element name =\"nreload\">               \n"
-      "      <data type=\"nonNegativeInteger\"/>     \n"
-      "    </element>                                \n"
-      "  </optional>                                 \n"
-      "  <optional>                                  \n"
-      "    <element name =\"initial_condition\">     \n"
-      "      <optional>                              \n"
-      "        <element name =\"reserves\">          \n"
-      "         <element name =\"nbatches\">         \n"
-      "          <data type=\"nonNegativeInteger\"/> \n"
-      "         </element>                           \n"
-      "         <element name =\"commodity\">        \n"
-      "          <data type=\"string\"/>             \n"
-      "         </element>                           \n"
-      "         <element name =\"recipe\">           \n"
-      "          <data type=\"string\"/>             \n"
-      "         </element>                           \n"
-      "        </element>                            \n"
-      "      </optional>                             \n"
-      "      <optional>                              \n"
-      "        <element name =\"core\">              \n"
-      "        <element name =\"nbatches\">          \n"
-      "          <data type=\"nonNegativeInteger\"/> \n"
-      "        </element>                            \n"
-      "        <element name =\"commodity\">         \n"
-      "          <data type=\"string\"/>             \n"
-      "        </element>                            \n"
-      "        <element name =\"recipe\">            \n"
-      "          <data type=\"string\"/>             \n"
-      "        </element>                            \n"
-      "        </element>                            \n"
-      "      </optional>                             \n"
-      "      <optional>                              \n"
-      "        <element name =\"storage\">           \n"
-      "        <element name =\"nbatches\">          \n"
-      "          <data type=\"nonNegativeInteger\"/> \n"
-      "        </element>                            \n"
-      "        <element name =\"commodity\">         \n"
-      "          <data type=\"string\"/>             \n"
-      "        </element>                            \n"
-      "        <element name =\"recipe\">            \n"
-      "          <data type=\"string\"/>             \n"
-      "        </element>                            \n"
-      "        </element>                            \n"
-      "      </optional>                             \n"
       "    </element>                                \n"
       "  </optional>                                 \n"
       "                                              \n"
@@ -247,19 +180,19 @@ void CommodConverter::InitFrom(cyclus::QueryEngine* qe) {
           reserves->GetElementContent("recipe"),
           reserves->GetElementContent("commodity"));
     }
-    if (ic->NElementsMatchingQuery("core") > 0) {
-      QueryEngine* core = ic->QueryElement("core");
+    if (ic->NElementsMatchingQuery("processing") > 0) {
+      QueryEngine* processing = ic->QueryElement("processing");
       ics_.AddCore(
-          lexical_cast<int>(core->GetElementContent("nbatches")),
-          core->GetElementContent("recipe"),
-          core->GetElementContent("commodity"));
+          lexical_cast<int>(processing->GetElementContent("nbatches")),
+          processing->GetElementContent("recipe"),
+          processing->GetElementContent("commodity"));
     }
-    if (ic->NElementsMatchingQuery("storage") > 0) {
-      QueryEngine* storage = ic->QueryElement("storage");
-      ics_.AddStorage(
-          lexical_cast<int>(storage->GetElementContent("nbatches")),
-          storage->GetElementContent("recipe"),
-          storage->GetElementContent("commodity"));
+    if (ic->NElementsMatchingQuery("stocks") > 0) {
+      QueryEngine* stocks = ic->QueryElement("stocks");
+      ics_.AddStocks(
+          lexical_cast<int>(stocks->GetElementContent("nbatches")),
+          stocks->GetElementContent("recipe"),
+          stocks->GetElementContent("commodity"));
     }
   }
       
@@ -384,24 +317,24 @@ void CommodConverter::Deploy(cyclus::Model* parent) {
       reserves_.Push(mat);
     }
   }
-  if (ics_.core) {
-    for (int i = 0; i < ics_.n_core; ++i) {
+  if (ics_.processing) {
+    for (int i = 0; i < ics_.n_processing; ++i) {
       mat = Material::Create(this,
                              batch_size(),
-                             context()->GetRecipe(ics_.core_rec));
-      assert(ics_.core_commod != "");
-      crctx_.AddRsrc(ics_.core_commod, mat);
-      core_.Push(mat);
+                             context()->GetRecipe(ics_.processing_rec));
+      assert(ics_.processing_commod != "");
+      crctx_.AddRsrc(ics_.processing_commod, mat);
+      processing_.Push(mat);
     }
   }
-  if (ics_.storage) {
-    for (int i = 0; i < ics_.n_storage; ++i) {
+  if (ics_.stocks) {
+    for (int i = 0; i < ics_.n_stocks; ++i) {
       mat = Material::Create(this,
                              batch_size(),
-                             context()->GetRecipe(ics_.storage_rec));
-      assert(ics_.storage_commod != "");
-      crctx_.AddRsrc(ics_.storage_commod, mat);
-      storage_[ics_.storage_commod].Push(mat);
+                             context()->GetRecipe(ics_.stocks_rec));
+      assert(ics_.stocks_commod != "");
+      crctx_.AddRsrc(ics_.stocks_commod, mat);
+      stocks_[ics_.stocks_commod].Push(mat);
     }
   }
 
@@ -422,29 +355,29 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NCore: " << core_.count();  
-  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NStorage: " << StorageCount();  
+  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    Spillover Qty: " << spillover_->quantity();  
 
   if (context()->time() == FacLifetime()) {
-    int ncore = core_.count();
+    int nprocessing = processing_.count();
     LOG(cyclus::LEV_DEBUG1, "BReact") << "lifetime reached, moving out:"
-                                      << ncore << " batches.";
-    for (int i = 0; i < ncore; i++) {
+                                      << nprocessing << " batches.";
+    for (int i = 0; i < nprocessing; i++) {
       MoveBatchOut_(); // unload
     }
   } else {
     switch (phase()) {
       case WAITING:
-        if (n_core() == n_batches() &&
+        if (n_processing() == n_batches() &&
             to_begin_time() <= context()->time()) {
           phase(PROCESS);
         } 
         break;
         
       case INITIAL:
-        // special case for a core primed to go
-        if (n_core() == n_batches()) phase(PROCESS);
+        // special case for a processing primed to go
+        if (n_processing() == n_batches()) phase(PROCESS);
         break;
     }
   }
@@ -477,8 +410,8 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NCore: " << core_.count();  
-  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NStorage: " << StorageCount();  
+  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "BReact") << "}";
 }
@@ -494,8 +427,8 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NCore: " << core_.count();  
-  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NStorage: " << StorageCount();  
+  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG4, "BReact") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG4, "BReact") << "    Spillover Qty: " << spillover_->quantity();  
   
   switch (phase()) {
@@ -521,8 +454,8 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NCore: " << core_.count();  
-  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NStorage: " << StorageCount();  
+  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG3, "BReact") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG3, "BReact") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "BReact") << "}";
 }
@@ -539,10 +472,10 @@ CommodConverter::GetMatlRequests() {
 
   switch (phase()) {
     // the initial phase requests as much fuel as necessary to achieve an entire
-    // core
+    // processing
     case INITIAL:
       order_size = n_batches() * batch_size()
-                   - core_.quantity() - reserves_.quantity()
+                   - processing_.quantity() - reserves_.quantity()
                    - spillover_->quantity();
       if (preorder_time() == 0) order_size += batch_size() * n_reserves();
       if (order_size > 0) {
@@ -554,7 +487,7 @@ CommodConverter::GetMatlRequests() {
     // the default case is to request the reserve amount if the order time has
     // been reached
     default:
-      // double fuel_need = (n_reserves() + n_batches() - n_core()) * batch_size();
+      // double fuel_need = (n_reserves() + n_batches() - n_processing()) * batch_size();
       double fuel_need = (n_reserves() + n_load()) * batch_size();
       double fuel_have = reserves_.quantity() + spillover_->quantity();
       order_size = fuel_need - fuel_have;
@@ -626,7 +559,7 @@ CommodConverter::GetMatlBids(const cyclus::CommodMap<cyclus::Material>::type&
   for (it = commods.begin(); it != commods.end(); ++it) {
     BidPortfolio<Material>::Ptr port = GetBids_(commod_requests,
                                                 *it,
-                                                &storage_[*it]);
+                                                &stocks_[*it]);
     if (!port->bids().empty()) ports.insert(port);
   }
   
@@ -647,7 +580,7 @@ void CommodConverter::GetMatlTrades(
 
     std::string commodity = it->request->commodity();
     double qty = it->amt;
-    Material::Ptr response = TradeResponse_(qty, &storage_[commodity]);
+    Material::Ptr response = TradeResponse_(qty, &stocks_[commodity]);
 
     responses.push_back(std::make_pair(*it, response));
     LOG(cyclus::LEV_INFO5, "CommodConverter") << name()
@@ -658,10 +591,10 @@ void CommodConverter::GetMatlTrades(
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int CommodConverter::StorageCount() {
+int CommodConverter::StocksCount() {
   int count = 0;
   std::map<std::string, cyclus::ResourceBuff>::const_iterator it;
-  for (it = storage_.begin(); it != storage_.end(); ++it) {
+  for (it = stocks_.begin(); it != stocks_.end(); ++it) {
     count += it->second.count();
   }
   return count;
@@ -683,9 +616,9 @@ void CommodConverter::phase(CommodConverter::Phase p) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::Refuel_() {
-  while(n_core() < n_batches() && reserves_.count() > 0) {
+  while(n_processing() < n_batches() && reserves_.count() > 0) {
     MoveBatchIn_();
-    if(n_core() == n_batches()) {
+    if(n_processing() == n_batches()) {
       to_begin_time_ = start_time_ + process_time_ + refuel_time_;
     }
   }
@@ -694,9 +627,9 @@ void CommodConverter::Refuel_() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::MoveBatchIn_() {
   LOG(cyclus::LEV_DEBUG2, "BReact") << "CommodConverter " << name() << " added"
-                                    <<  " a batch from its core.";
+                                    <<  " a batch from its processing.";
   try {
-    core_.Push(reserves_.Pop());
+    processing_.Push(reserves_.Pop());
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
@@ -709,9 +642,9 @@ void CommodConverter::MoveBatchOut_() {
   using cyclus::ResCast;
   
   LOG(cyclus::LEV_DEBUG2, "BReact") << "CommodConverter " << name() << " removed"
-                                    <<  " a batch from its core.";
+                                    <<  " a batch from its processing.";
   try {
-    Material::Ptr mat = ResCast<Material>(core_.Pop());
+    Material::Ptr mat = ResCast<Material>(processing_.Pop());
     std::string incommod = crctx_.commod(mat);
     assert(incommod != "");
     std::string outcommod = crctx_.out_commod(incommod);
@@ -720,7 +653,7 @@ void CommodConverter::MoveBatchOut_() {
     assert(outrecipe != "");
     mat->Transmute(context()->GetRecipe(outrecipe));
     crctx_.UpdateRsrc(outcommod, mat);
-    storage_[outcommod].Push(mat);
+    stocks_[outcommod].Push(mat);
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;

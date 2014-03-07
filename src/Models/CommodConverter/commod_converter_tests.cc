@@ -21,15 +21,15 @@ bool operator==(const CommodConverter::InitCond& l,
                    l.n_reserves == r.n_reserves &&
                    l.reserves_rec == r.reserves_rec &&
                    l.reserves_commod == r.reserves_commod);
-  bool core = (l.core == r.core &&
-                   l.n_core == r.n_core &&
-                   l.core_rec == r.core_rec &&
-                   l.core_commod == r.core_commod);
-  bool storage = (l.storage == r.storage &&
-                   l.n_storage == r.n_storage &&
-                   l.storage_rec == r.storage_rec &&
-                   l.storage_commod == r.storage_commod);
-  return (reserves && core && storage);
+  bool processing = (l.processing == r.processing &&
+                   l.n_processing == r.n_processing &&
+                   l.processing_rec == r.processing_rec &&
+                   l.processing_commod == r.processing_commod);
+  bool processing = (l.processing == r.processing &&
+                   l.n_processing == r.n_processing &&
+                   l.processing_rec == r.processing_rec &&
+                   l.processing_commod == r.processing_commod);
+  return (reserves && processing && processing);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,16 +72,16 @@ void CommodConverterTest::InitParameters() {
   // init conds
   rsrv_c = in_c1;
   rsrv_r = in_r1;
-  core_c = in_c2;
-  core_r = in_r2;
+  processing_c = in_c2;
+  processing_r = in_r2;
   stor_c = out_c1;
   stor_r = out_r1;
   rsrv_n = 2;
-  core_n = 3;
+  processing_n = 3;
   stor_n = 1;
   ics.AddReserves(rsrv_n, rsrv_r, rsrv_c);
-  ics.AddCore(core_n, core_r, core_c);
-  ics.AddStorage(stor_n, stor_r, stor_c);
+  ics.AddProcessing(processing_n, processing_r, processing_c);
+  ics.AddStocks(stor_n, stor_r, stor_c);
   
   // commod prefs
   frompref1 = 7.5;
@@ -137,10 +137,10 @@ void CommodConverterTest::SetUpSourceFacility() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestBuffs(int nreserves, int ncore, int nstorage) {
+void CommodConverterTest::TestBuffs(int nreserves, int nprocessing, int nprocessing) {
   EXPECT_EQ(nreserves, src_facility->reserves_.count());
-  EXPECT_EQ(ncore, src_facility->core_.count());
-  EXPECT_EQ(nstorage, src_facility->storage_[out_c1].count());
+  EXPECT_EQ(nprocessing, src_facility->processing_.count());
+  EXPECT_EQ(nprocessing, src_facility->processing_[out_c1].count());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -159,17 +159,17 @@ void CommodConverterTest::TestReserveBatches(cyclus::Material::Ptr mat,
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestBatchIn(int n_core, int n_reserves) {
+void CommodConverterTest::TestBatchIn(int n_processing, int n_reserves) {
   src_facility->MoveBatchIn_();
-  EXPECT_EQ(n_core, src_facility->n_core());
+  EXPECT_EQ(n_processing, src_facility->n_processing());
   EXPECT_EQ(n_reserves, src_facility->reserves_.count());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestBatchOut(int n_core, int n_storage) {
+void CommodConverterTest::TestBatchOut(int n_processing, int n_processing) {
   src_facility->MoveBatchOut_();
-  EXPECT_EQ(n_core, src_facility->n_core());
-  EXPECT_EQ(n_storage, src_facility->storage_[out_c1].count());
+  EXPECT_EQ(n_processing, src_facility->n_processing());
+  EXPECT_EQ(n_processing, src_facility->processing_[out_c1].count());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -182,7 +182,7 @@ void CommodConverterTest::TestInitState(CommodConverter* fac) {
   EXPECT_EQ(refuel_time, fac->refuel_time());
   EXPECT_EQ(preorder_time, fac->preorder_time());
   EXPECT_EQ(batch_size, fac->batch_size());
-  EXPECT_EQ(0, fac->n_core());
+  EXPECT_EQ(0, fac->n_processing());
   EXPECT_EQ(CommodConverter::INITIAL, fac->phase());
   EXPECT_EQ(ics, fac->ics());
 
@@ -234,16 +234,16 @@ TEST_F(CommodConverterTest, XMLInit) {
      << "      <commodity>" << rsrv_c << "</commodity>"
      << "      <recipe>" << rsrv_r << "</recipe>"
      << "    </reserves>"
-     << "    <core>"
-     << "      <nbatches>" << core_n << "</nbatches>"
-     << "      <commodity>" << core_c << "</commodity>"
-     << "      <recipe>" << core_r << "</recipe>"
-     << "    </core>"
-     << "    <storage>"
+     << "    <processing>"
+     << "      <nbatches>" << processing_n << "</nbatches>"
+     << "      <commodity>" << processing_c << "</commodity>"
+     << "      <recipe>" << processing_r << "</recipe>"
+     << "    </processing>"
+     << "    <processing>"
      << "      <nbatches>" << stor_n << "</nbatches>"
      << "      <commodity>" << stor_c << "</commodity>"
      << "      <recipe>" << stor_r << "</recipe>"
-     << "    </storage>"
+     << "    </processing>"
      << "  </initial_condition>"
      << "  <recipe_change>"
      << "    <incommodity>" << in_c1 << "</incommodity>"
@@ -327,7 +327,7 @@ TEST_F(CommodConverterTest, StartProcess) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(CommodConverterTest, InitCond) {
   src_facility->Deploy();
-  TestBuffs(rsrv_n, core_n, stor_n);
+  TestBuffs(rsrv_n, processing_n, stor_n);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

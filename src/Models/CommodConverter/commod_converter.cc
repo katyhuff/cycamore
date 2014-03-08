@@ -152,7 +152,7 @@ cyclus::Model* CommodConverter::Clone() {
 void CommodConverter::InitFrom(CommodConverter* m) {
   FacilityModel::InitFrom(m);
   
-  // in/out
+  // in/out commodity & resource context
   crctx_ = m->crctx_;
   
   // facility params
@@ -164,12 +164,6 @@ void CommodConverter::InitFrom(CommodConverter* m) {
   // commodity production
   CopyProducedCommoditiesFrom(m);
 
-  // trade preferences
-  commod_prefs(m->commod_prefs());
-  pref_changes_ = m->pref_changes_;
-
-  // recipe changes
-  recipe_changes_ = m->recipe_changes_;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -191,6 +185,7 @@ void CommodConverter::Deploy(cyclus::Model* parent) {
   FacilityModel::Deploy(parent);
   phase(INITIAL);
   std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
+  //<nix?> This seems to create a material... of 0 mass?... just placeholder?
   spillover_ = Material::Create(this, 0.0, context()->GetRecipe(rec));
 
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "Commod Converter entering the simuluation";
@@ -212,11 +207,12 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NCore: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
+  //<nix?> I think spillover is unnecessary
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
 
   if (context()->time() == FacLifetime()) {
     int nprocessing = processing_.count();
-    LOG(cyclus::LEV_DEBUG1, "ComCnv") << "lifetime reached, moving out:"
+    LOG(cyclus::LEV_DEBUG1, "ComCnv") << "lifetime reached, dumping:"
                                       << nprocessing << " commods.";
     for (int i = 0; i < nprocessing; i++) {
       Convert_(); // unload
@@ -224,7 +220,7 @@ void CommodConverter::Tick(int time) {
   } else {
     switch (phase()) {
       case WAITING:
-        if (n_processing() == n_batches() &&
+        if (n_processing() > 0 &&
             to_begin_time() <= context()->time()) {
           phase(PROCESS);
         } 
@@ -237,26 +233,6 @@ void CommodConverter::Tick(int time) {
     }
   }
 
-  // change preferences if its time
-  if (pref_changes_.count(time)) {
-    std::vector< std::pair< std::string, double> >&
-        changes = pref_changes_[time];
-    for (int i = 0; i < changes.size(); i++) {
-      commod_prefs_[changes[i].first] = changes[i].second;
-    }
-  }
-
-  // change recipes if its time
-  if (recipe_changes_.count(time)) {
-    std::vector< std::pair< std::string, std::string> >&
-        changes = recipe_changes_[time];
-    for (int i = 0; i < changes.size(); i++) {
-      assert(changes[i].first != "");
-      assert(changes[i].second != "");
-      crctx_.UpdateInRec(changes[i].first, changes[i].second);
-    }
-  }
-  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "Current facility parameters for "
                                     << name()
                                     << " at the end of the tick are:";

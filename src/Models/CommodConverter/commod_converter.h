@@ -32,7 +32,7 @@ namespace cycamore {
 /// @section introduction Introduction
 /// The CommodConverter is a facility that receives commodities, holds onto them  
 /// for some number of months, offers them to the market of the new commodity. It 
-/// has three  stocks areas which hold batches of commodities: reserves, 
+/// has three  stocks areas which hold commods of commodities: reserves, 
 /// processing, and  stocks. Incoming commodity orders are placed into reserves, 
 /// from which the  processing area is populated. When a process (some number of 
 /// months spent waiting)  has been completed, the commodity is converted and 
@@ -40,19 +40,19 @@ namespace cycamore {
 /// of the commodities in the stocks.  
 ///
 /// The CommodConverter can manage multiple input-output commodity pairs, and keeps
-/// track of the pair that each batch belongs to. Commodities move through the
+/// track of the pair that each resource belongs to. Resources move through the
 /// system independently of their input/output commodity types, but when they
 /// reach the stocks area, they are offered as bids depedent on their output
 /// commodity type.
 ///
 /// @section params Parameters
 /// A CommodConverter has the following tuneable parameters:
-///   #. batch_size : the size of batches <nix>
-///   #. n_batches : the number of batches that constitute a full processing <nix>
+///   #. batch_size : the size of commods <nix>
+///   #. n_commods : the number of commods that constitute a full processing <nix>
 ///   #. process_time : the number of timesteps a batch process takes
-///   #. n_load : the number of batches processed at any given time (i.e.,
+///   #. n_load : the number of commods processed at any given time (i.e.,
 ///   n_load is unloaded and reloaded after a process is finished <nix?>
-///   #. n_reserves : the preferred number of batches in reserve <nix>
+///   #. n_reserves : the preferred number of commods in reserve <nix>
 ///   #. preorder_time : the amount of time before a process is finished to
 ///   order fuel <always order>
 ///   #. refuel_time : the number of timesteps required to reload the processing after
@@ -98,7 +98,7 @@ namespace cycamore {
 /// associated with that output commodity.
 ///
 /// @section ics Initial Conditions
-/// A CommodConverter can be deployed with any number of batches in its reserve,
+/// A CommodConverter can be deployed with any number of commods in its reserve,
 /// processing, and stocks buffers. Recipes and commodities for each of these batch
 /// groupings must be specified.
 ///
@@ -201,16 +201,27 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @param time the time of the tock
   virtual void Tock(int time);
   
-  /// @brief The EnrichmentFacility request Materials of its given
+  /// @brief The CommodConverter requests Materials of its given
   /// commodity. 
   virtual std::set<cyclus::RequestPortfolio<cyclus::Material>::Ptr>
       GetMatlRequests();
 
-  /// @brief The EnrichmentFacility place accepted trade Materials in their
+  /// @brief The CommodConverter requests GenericResources of its given 
+  /// commodity. 
+  virtual std::set<cyclus::RequestPortfolio<cyclus::GenericResource>::Ptr>
+      GetGenRsrcRequests();
+
+  /// @brief The CommodConverter place accepted trade Materials in their
   /// Inventory
   virtual void AcceptMatlTrades(
       const std::vector< std::pair<cyclus::Trade<cyclus::Material>,
       cyclus::Material::Ptr> >& responses);
+  
+  /// @brief The CommodConverter place accepted trade GenericResources in 
+  //their Inventory 
+  virtual void AcceptGenRsrcTrades(
+      const std::vector< std::pair<cyclus::Trade<cyclus::GenericResource>,
+      cyclus::GenericResource::Ptr> >& responses);
   
   /// @brief Responds to each request for this facility's commodity.  If a given
   /// request is more than this facility's inventory or SWU capacity, it will
@@ -219,8 +230,12 @@ class CommodConverter : public cyclus::FacilityModel,
       GetMatlBids(const cyclus::CommodMap<cyclus::Material>::type&
                   commod_requests);
   
-  /// @brief respond to each trade with a material enriched to the appropriate
-  /// level given this facility's inventory
+  /// @brief Responds to each request for this facility's commodity.  
+  virtual std::set<cyclus::BidPortfolio<cyclus::GenericResource>::Ptr>
+      GetGenRsrcBids(const cyclus::CommodMap<cyclus::GenericResource>::type&
+                  commod_requests);
+  
+  /// @brief respond to each trade with a material based on the recipe
   ///
   /// @param trades all trades in which this trader is the supplier
   /// @param responses a container to populate with responses to each trade
@@ -228,10 +243,20 @@ class CommodConverter : public cyclus::FacilityModel,
     const std::vector< cyclus::Trade<cyclus::Material> >& trades,
     std::vector<std::pair<cyclus::Trade<cyclus::Material>,
     cyclus::Material::Ptr> >& responses);
+
+  /// @brief respond to each trade with a generic resource based
+  /// level given this facility's inventory
+  ///
+  /// @param trades all trades in which this trader is the supplier
+  /// @param responses a container to populate with responses to each trade
+  virtual void GetGenRsrcTrades(
+    const std::vector< cyclus::Trade<cyclus::GenericResource> >& trades,
+    std::vector<std::pair<cyclus::Trade<cyclus::GenericResource>,
+    cyclus::GenericResource::Ptr> >& responses);
   /* --- */
 
   /* --- CommodConverter Members --- */
-  /// @return the total number of batches in stocks
+  /// @return the total number of commods in stocks
   int StocksCount();
   
   /// @brief the processing time required for a full batch process before
@@ -263,24 +288,20 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief the time orders should be taking place for the next refueling
   inline int order_time() const { return end_time() - preorder_time(); }
 
-  /// @brief the number of batches in a full reactor
-  inline void n_batches(int n) { n_batches_ = n; }
-  inline int n_batches() const { return n_batches_; }
+  /// @brief the number of commods in a full reactor
+  inline void n_commods(int n) { n_commods_ = n; }
+  inline int n_commods() const { return n_commods_; }
 
-  /// @brief the number of batches in reactor refuel loading/unloading
+  /// @brief the number of commods in reactor refuel loading/unloading
   inline void n_load(int n) { n_load_ = n; }
   inline int n_load() const { return n_load_; }
 
-  /// @brief the preferred number of fresh fuel batches to keep in reserve
+  /// @brief the preferred number of fresh fuel commods to keep in reserve
   inline void n_reserves(int n) { n_reserves_ = n; }
   inline int n_reserves() const { return n_reserves_; }
 
-  /// @brief the number of batches currently in the reactor
+  /// @brief the number of commods currently in the reactor
   inline int n_processing() const { return processing_.count(); }
-
-  /// @brief the size of a batch 
-  inline void batch_size(double size) { batch_size_ = size; }
-  inline double batch_size() { return batch_size_; }
 
   /// @brief this facility's commodity-recipe context
   inline void crctx(const cyclus::CommodityRecipeContext& crctx) {
@@ -288,10 +309,6 @@ class CommodConverter : public cyclus::FacilityModel,
   }
   inline cyclus::CommodityRecipeContext crctx() const { return crctx_; }
 
-  /// @brief this facility's initial conditions
-  inline void ics(const InitCond& ics) { ics_ = ics; }
-  inline InitCond ics() const { return ics_; }
-  
   /// @brief the current phase
   void phase(Phase p);
   inline Phase phase() const { return phase_; }
@@ -306,7 +323,7 @@ class CommodConverter : public cyclus::FacilityModel,
 
  protected:
   /// @brief moves a batch from processing_ to stocks_
-  virtual void MoveBatchOut_();
+  virtual void Convert_();
 
   /// @brief gets bids for a commodity from a buffer
   cyclus::BidPortfolio<cyclus::Material>::Ptr GetBids_(
@@ -331,11 +348,11 @@ class CommodConverter : public cyclus::FacilityModel,
 
  private:
   /// @brief refuels the reactor until it is full or reserves_ is out of
-  /// batches. If the processing is full after refueling, the Phase is set to PROCESS.
+  /// commods. If the processing is full after refueling, the Phase is set to PROCESS.
   void Refuel_();
 
   /// @brief moves a batch from reserves_ to processing_
-  void MoveBatchIn_();
+  void BeginProcessing_();
   
   /// @brief construct a request portfolio for an order of a given size
   cyclus::RequestPortfolio<cyclus::Material>::Ptr GetOrder_(double size);
@@ -354,13 +371,9 @@ class CommodConverter : public cyclus::FacilityModel,
   static std::map<Phase, std::string> phase_names_;
   int process_time_;
   int preorder_time_;
-  int refuel_time_;
   int start_time_;
   int to_begin_time_;
-  int n_batches_;
-  int n_load_;
   int n_reserves_;
-  double batch_size_;
   Phase phase_;
   
   InitCond ics_;
@@ -368,21 +381,10 @@ class CommodConverter : public cyclus::FacilityModel,
   cyclus::CommodityRecipeContext crctx_;
   
   /// @warning as is, the int key is **simulation time**, i.e., context()->time
-  /// == key. this should be fixed for future use!
-  std::map<int, std::vector< std::pair< std::string, std::string > > >
-      recipe_changes_;
-  
-  /// @brief preferences for each input commodity
-  std::map<std::string, double> commod_prefs_;
-
-  /// @warning as is, the int key is **simulation time**, i.e., context()->time
-  /// == key. this should be fixed for future use!
-  std::map<int, std::vector< std::pair< std::string, double > > > pref_changes_;
-  
-  /// @brief allows only batches to enter reserves_
+  /// @brief allows only commods to enter reserves_
   cyclus::Material::Ptr spillover_;
   
-  /// @brief a cyclus::ResourceBuff for material before they enter the processing,
+  /// @brief a cyclus::ResourceBuff for resources before they enter the processing,
   /// with all materials guaranteed to be of batch_size_
   cyclus::ResourceBuff reserves_;
 

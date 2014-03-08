@@ -190,14 +190,12 @@
     <name>LWRWetStorage</name>
     <model>
       <CommodConvertFacility>
-        <input>
+        <commodpair>
           <incommodity>lwr_unf</incommodity>
-          <recipe>lwr_unf_recipe</recipe>
-        </input>
-        <output>
+          <inrecipe>lwr_unf_inrecipe</inrecipe>
           <outcommodity>lwr_unf_cool</outcommodity>
-          <recipe>lwr_unf_recipe</recipe>
-        </output>
+          <outrecipe>lwr_unf_outrecipe</outrecipe>
+        </commodpair>
         <delay>48</delay>
       </CommodConvertFacility>
     </model>
@@ -209,14 +207,12 @@
     <name>SFRWetStorage</name>
     <model>
       <CommodConvertFacility>
-        <input>
+        <commodpair>
           <incommodity>sfr_unf</incommodity>
-          <recipe>sfr_unf_recipe</recipe>
-        </input>
-        <output>
+          <inrecipe>sfr_unf_inrecipe</inrecipe>
           <outcommodity>sfr_unf_cool</outcommodity>
-          <recipe>sfr_unf_recipe</recipe>
-        </output>
+          <outrecipe>sfr_unf_outrecipe</outrecipe>
+        </commodpair>
         <delay>12</delay>
       </CommodConvertFacility>
     </model>

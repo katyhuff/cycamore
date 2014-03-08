@@ -23,7 +23,6 @@ CommodConverter::CommodConverter(cyclus::Context* ctx)
     : cyclus::FacilityModel(ctx),
       cyclus::Model(ctx),
       process_time_(1),
-      preorder_time_(0),
       start_time_(-1),
       to_begin_time_(std::numeric_limits<int>::max()),
       n_reserves_(0),
@@ -121,11 +120,6 @@ void CommodConverter::InitFrom(cyclus::QueryEngine* qe) {
   data = qe->GetElementContent("processtime");
   process_time(lexical_cast<int>(data));
 
-  // facility data optional
-  int time;
-  time = GetOptionalQuery<int>(qe, "orderlookahead", preorder_time());
-  preorder_time(time);
-
   int n;
   n = GetOptionalQuery<int>(qe, "norder", n_reserves());
   n_reserves(n);
@@ -157,7 +151,6 @@ void CommodConverter::InitFrom(CommodConverter* m) {
   
   // facility params
   process_time(m->process_time());
-  preorder_time(m->preorder_time());
   n_load(m->n_load());
   n_reserves(m->n_reserves());
 
@@ -172,7 +165,6 @@ std::string CommodConverter::str() {
   ss << cyclus::FacilityModel::str();
   ss << " has facility parameters {" << "\n"
      << "     Process Time = " << process_time() << ",\n"
-     << "     Preorder Time = " << preorder_time() << ",\n"
      << "     Commods To Reserve = " << n_reserves() << ",\n"
      << "'}";
   return ss.str();
@@ -203,7 +195,6 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -239,7 +230,6 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -256,7 +246,6 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -283,7 +272,6 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -310,7 +298,6 @@ CommodConverter::GetMatlRequests() {
       order_size = n_batches() * batch_size()
                    - processing_.quantity() - reserves_.quantity()
                    - spillover_->quantity();
-      if (preorder_time() == 0) order_size += batch_size() * n_reserves();
       if (order_size > 0) {
         RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
         set.insert(p);
@@ -422,11 +409,11 @@ void CommodConverter::phase(CommodConverter::Phase p) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverter::Refuel_() {
-  while(n_processing() < n_batches() && reserves_.count() > 0) {
+void CommodConverter::EmptyReserves_() {
+  /// @TODO could add process capacity constraint here
+  while(reserves_.count() > 0) {
     BeginProcessing_();
-    if(n_processing() == n_batches()) {
-      to_begin_time_ = start_time_ + process_time_ + refuel_time_;
+    phase(PROCESS);
     }
   }
 }
@@ -434,9 +421,10 @@ void CommodConverter::Refuel_() {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " added"
-                                    <<  " a batch from its processing.";
+                                    <<  " a resource to processing.";
   try {
     processing_.Push(reserves_.Pop());
+    process_times_.push_back(context()->time());
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
@@ -447,9 +435,9 @@ void CommodConverter::BeginProcessing_() {
 void CommodConverter::Convert_() {
   using cyclus::Material;
   using cyclus::ResCast;
-  
+
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " removed"
-                                    <<  " a batch from its processing.";
+                                    <<  " a resource from processing.";
   try {
     Material::Ptr mat = ResCast<Material>(processing_.Pop());
     std::string incommod = crctx_.commod(mat);

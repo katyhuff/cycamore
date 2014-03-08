@@ -53,8 +53,6 @@ namespace cycamore {
 ///   #. n_load : the number of commods processed at any given time (i.e.,
 ///   n_load is unloaded and reloaded after a process is finished <nix?>
 ///   #. n_reserves : the preferred number of commods in reserve <nix>
-///   #. preorder_time : the amount of time before a process is finished to
-///   order fuel <always order>
 ///   #. refuel_time : the number of timesteps required to reload the processing after
 ///   a process has finished <0>
 /// 
@@ -87,10 +85,7 @@ namespace cycamore {
 /// commodities. It provides a constraint based on a total request amount
 /// determined by its processing capacity and n_reserves parameters. The
 /// n_reserves parameter allows modelers to order fuel in advance of when it is
-/// needed. The order size is capacity +  n_reserves/process_time? These
-/// requests are not made if the current simulation time is less than or equal to
-/// the facility's current order_time(), which is determined by the ending time
-/// of the current process less a look ahead time, the preorder_time()? <nix>
+/// needed. The order size is capacity +  n_reserves/process_time?
 ///
 /// @section bids Bids
 /// A CommodConverter will bid on any request for any of its out_commodities, as
@@ -268,11 +263,6 @@ class CommodConverter : public cyclus::FacilityModel,
   inline void refuel_time(int t) { refuel_time_ = t; }
   inline int refuel_time() const { return refuel_time_; }
   
-  /// @brief the amount of time an order should be placed for new fuel before a
-  /// process is finished
-  inline void preorder_time(int t) { preorder_time_ = t; }
-  inline int preorder_time() const { return preorder_time_; }
-
   /// @brief the starting time of the last (current) process
   inline void start_time(int t) { start_time_ = t; }
   inline int start_time() const { return start_time_; }
@@ -284,9 +274,6 @@ class CommodConverter : public cyclus::FacilityModel,
 
   /// @brief the beginning time for the next phase, set internally
   inline int to_begin_time() const { return to_begin_time_; }
-
-  /// @brief the time orders should be taking place for the next refueling
-  inline int order_time() const { return end_time() - preorder_time(); }
 
   /// @brief the number of commods in a full reactor
   inline void n_commods(int n) { n_commods_ = n; }
@@ -347,9 +334,9 @@ class CommodConverter : public cyclus::FacilityModel,
   std::map<std::string, cyclus::ResourceBuff> stocks_;
 
  private:
-  /// @brief refuels the reactor until it is full or reserves_ is out of
-  /// commods. If the processing is full after refueling, the Phase is set to PROCESS.
-  void Refuel_();
+  /// @brief Processes until reserves_ is out of commods.
+  /// The Phase is set to PROCESS.
+  void EmptyReserves_();
 
   /// @brief moves a batch from reserves_ to processing_
   void BeginProcessing_();
@@ -370,7 +357,6 @@ class CommodConverter : public cyclus::FacilityModel,
   
   static std::map<Phase, std::string> phase_names_;
   int process_time_;
-  int preorder_time_;
   int start_time_;
   int to_begin_time_;
   int n_reserves_;

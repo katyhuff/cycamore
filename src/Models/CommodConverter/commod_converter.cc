@@ -205,7 +205,7 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
   //<nix?> I think spillover is unnecessary
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
@@ -241,7 +241,7 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
@@ -258,7 +258,7 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   
@@ -266,14 +266,14 @@ void CommodConverter::Tock(int time) {
     case PROCESS:
       if (time == end_time()) {
         for (int i = 0; i < n_load(); i++) {
-          Convert_(); // unload
+          Convert_(); // place processing into stocks
         }
-        Refuel_(); // reload
+        BeginProcessing_(); // place reserves into processing
         phase(WAITING);
       }
       break;
     default:
-      Refuel_(); // always try to reload if possible
+      BeginProcessing_(); // always try to place reserves into processing 
       break;
   }
 
@@ -285,7 +285,7 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Order time: " << order_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NCore: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
@@ -302,40 +302,16 @@ CommodConverter::GetMatlRequests() {
   double order_size;
 
   switch (phase()) {
-    // the initial phase requests as much fuel as necessary to achieve an entire
-    // processing
-    case INITIAL:
+    // by default, this facility requests as much incommodity as there is capacity for.
+    // maybe the only exception should be when we're decommissioning...
+    case DECOMM:
+      break;
+    default:
       order_size = n_batches() * batch_size()
                    - processing_.quantity() - reserves_.quantity()
                    - spillover_->quantity();
       if (preorder_time() == 0) order_size += batch_size() * n_reserves();
       if (order_size > 0) {
-        RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
-        set.insert(p);
-      }
-      break;
-
-    // the default case is to request the reserve amount if the order time has
-    // been reached
-    default:
-      // double fuel_need = (n_reserves() + n_batches() - n_processing()) * batch_size();
-      double fuel_need = (n_reserves() + n_load()) * batch_size();
-      double fuel_have = reserves_.quantity() + spillover_->quantity();
-      order_size = fuel_need - fuel_have;
-      bool ordering = order_time() <= context()->time() && order_size > 0;
-
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "CommodConverter " << name()
-                                        << " is deciding whether to order -";      
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "    Needs fuel amt: " << fuel_need;    
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "    Has fuel amt: " << fuel_have;
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "    Order amt: " << order_size;
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "    Order time: " << order_time();
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "    Current time: "
-                                        << context()->time();
-      LOG(cyclus::LEV_DEBUG5, "ComCnv") << "    Ordering?: "
-                                        << ((ordering == true) ? "yes" : "no");
-      
-      if (ordering) {
         RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
         set.insert(p);
       }

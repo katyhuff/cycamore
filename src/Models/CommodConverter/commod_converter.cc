@@ -151,7 +151,6 @@ void CommodConverter::InitFrom(CommodConverter* m) {
   
   // facility params
   process_time(m->process_time());
-  n_load(m->n_load());
   n_reserves(m->n_reserves());
 
   // commodity production
@@ -254,7 +253,7 @@ void CommodConverter::Tock(int time) {
   switch (phase()) {
     case PROCESS:
       if (time == end_time()) {
-        for (int i = 0; i < n_load(); i++) {
+        while (processing_.count()>0) {
           Convert_(); // place processing into stocks
         }
         BeginProcessing_(); // place reserves into processing

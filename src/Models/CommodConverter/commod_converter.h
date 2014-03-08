@@ -50,8 +50,6 @@ namespace cycamore {
 ///   #. batch_size : the size of commods <nix>
 ///   #. n_commods : the number of commods that constitute a full processing <nix>
 ///   #. process_time : the number of timesteps a batch process takes
-///   #. n_load : the number of commods processed at any given time (i.e.,
-///   n_load is unloaded and reloaded after a process is finished <nix?>
 ///   #. n_reserves : the preferred number of commods in reserve <nix>
 ///   #. refuel_time : the number of timesteps required to reload the processing after
 ///   a process has finished <0>
@@ -254,14 +252,9 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @return the total number of commods in stocks
   int StocksCount();
   
-  /// @brief the processing time required for a full batch process before
-  /// refueling
+  /// @brief the processing time required for a full process
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }
-  
-  /// @brief the time it takes to refuel
-  inline void refuel_time(int t) { refuel_time_ = t; }
-  inline int refuel_time() const { return refuel_time_; }
   
   /// @brief the starting time of the last (current) process
   inline void start_time(int t) { start_time_ = t; }
@@ -278,10 +271,6 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief the number of commods in a full reactor
   inline void n_commods(int n) { n_commods_ = n; }
   inline int n_commods() const { return n_commods_; }
-
-  /// @brief the number of commods in reactor refuel loading/unloading
-  inline void n_load(int n) { n_load_ = n; }
-  inline int n_load() const { return n_load_; }
 
   /// @brief the preferred number of fresh fuel commods to keep in reserve
   inline void n_reserves(int n) { n_reserves_ = n; }

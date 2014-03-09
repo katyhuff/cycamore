@@ -189,7 +189,7 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
 
   if (context()->time() == FacLifetime()) {
-    int nprocessing = processing_.count();
+    int nprocessing = ProcessingCount();
     LOG(cyclus::LEV_DEBUG1, "ComCnv") << "lifetime reached, dumping:"
                                       << nprocessing << " commods.";
     for (int i = 0; i < nprocessing; i++) {
@@ -238,7 +238,7 @@ void CommodConverter::Tock(int time) {
   switch (phase()) {
     case PROCESS:
       if (time == end_time()) {
-        while (processing_.count()>0) {
+        while (ProcessingCount()>0) {
           Convert_(); // place processing into stocks
         }
         BeginProcessing_(); // place reserves into processing
@@ -257,7 +257,7 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
@@ -278,8 +278,7 @@ CommodConverter::GetMatlRequests() {
     case DECOMM:
       break;
     default:
-      order_size = n_batches() * batch_size()
-                   - processing_.quantity() - reserves_.quantity();
+      order_size = capacity() - reserves_.quantity();
       if (order_size > 0) {
         RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
         set.insert(p);
@@ -415,8 +414,7 @@ void CommodConverter::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " added"
                                     <<  " a resource to processing.";
   try {
-    processing_.Push(reserves_.Pop());
-    process_times_.push_back(context()->time());
+    processing_[context->time()].Push(reserves_.Pop());
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
@@ -430,8 +428,11 @@ void CommodConverter::Convert_() {
 
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " removed"
                                     <<  " a resource from processing.";
+
+  int ready = context_time()-process_time();  
+
   try {
-    Material::Ptr mat = ResCast<Material>(processing_.Pop());
+    Material::Ptr mat = ResCast<Material>(processing_[ready].Pop());
     std::string incommod = crctx_.commod(mat);
     assert(incommod != "");
     std::string outcommod = crctx_.out_commod(incommod);

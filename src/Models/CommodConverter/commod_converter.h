@@ -50,7 +50,6 @@ namespace cycamore {
 ///   #. batch_size : the size of commods <nix>
 ///   #. n_commods : the number of commods that constitute a full processing <nix>
 ///   #. process_time : the number of timesteps a batch process takes
-///   #. n_reserves : the preferred number of commods in reserve <nix>
 ///   #. refuel_time : the number of timesteps required to reload the processing after
 ///   a process has finished <0>
 /// 
@@ -81,9 +80,7 @@ namespace cycamore {
 /// @section requests Requests
 /// A CommodConverter will make as many requests as it has possible input
 /// commodities. It provides a constraint based on a total request amount
-/// determined by its processing capacity and n_reserves parameters. The
-/// n_reserves parameter allows modelers to order fuel in advance of when it is
-/// needed. The order size is capacity +  n_reserves/process_time?
+/// determined by its processing capacity.
 ///
 /// @section bids Bids
 /// A CommodConverter will bid on any request for any of its out_commodities, as
@@ -208,6 +205,9 @@ class CommodConverter : public cyclus::FacilityModel,
   /* --- */
 
   /* --- CommodConverter Members --- */
+  /// @return the total number of commods in processing
+  int ProcessingCount();
+
   /// @return the total number of commods in stocks
   int StocksCount();
   
@@ -217,9 +217,6 @@ class CommodConverter : public cyclus::FacilityModel,
   
   /// @brief the preferred number of fresh fuel commods to keep in reserve
   inline int n_reserves() const { return reserves_.count(); }
-
-  /// @brief the number of commods currently in the reactor
-  inline int n_processing() const { return processing_.count(); }
 
   /// @brief this facility's commodity-recipe context
   inline void crctx(const cyclus::CommodityRecipeContext& crctx) {
@@ -247,7 +244,8 @@ class CommodConverter : public cyclus::FacilityModel,
       cyclus::ResourceBuff* buffer);
   
   /// @brief a cyclus::ResourceBuff for material while they are processing
-  cyclus::ResourceBuff processing_;
+  /// there is one processing buffer for each processing start time
+  std::map<int, cyclus::ResourceBuff> processing_;
 
   /// @brief a cyclus::ResourceBuff for material once they are done processing.
   /// there is one stocks for each outcommodity
@@ -260,7 +258,8 @@ class CommodConverter : public cyclus::FacilityModel,
   /// The Phase is set to PROCESS.
   void EmptyReserves_();
 
-  /// @brief moves a batch from reserves_ to processing_
+  /// @brief moves everything from reserves_ to processing_
+  /// and, for each object, adds a start_time to the list of start times
   void BeginProcessing_();
   
   /// @brief construct a request portfolio for an order of a given size
@@ -279,18 +278,9 @@ class CommodConverter : public cyclus::FacilityModel,
   
   static std::map<Phase, std::string> phase_names_;
   int process_time_;
-  int start_time_;
-  int to_begin_time_;
-  int n_reserves_;
   Phase phase_;
   
-  InitCond ics_;
-
   cyclus::CommodityRecipeContext crctx_;
-  
-  /// @warning as is, the int key is **simulation time**, i.e., context()->time
-  /// @brief allows only commods to enter reserves_
-  cyclus::Material::Ptr spillover_;
   
   /// @brief a cyclus::ResourceBuff for resources before they enter processing
   cyclus::ResourceBuff reserves_;

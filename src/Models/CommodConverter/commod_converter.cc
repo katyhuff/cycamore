@@ -24,7 +24,6 @@ CommodConverter::CommodConverter(cyclus::Context* ctx)
       cyclus::Model(ctx),
       process_time_(1),
       start_time_(-1),
-      n_reserves_(0),
       phase_(INITIAL) {
   if (phase_names_.empty()) {
     SetUpPhaseNames_();
@@ -119,10 +118,6 @@ void CommodConverter::InitFrom(cyclus::QueryEngine* qe) {
   data = qe->GetElementContent("processtime");
   process_time(lexical_cast<int>(data));
 
-  int n;
-  n = GetOptionalQuery<int>(qe, "norder", n_reserves());
-  n_reserves(n);
-
   // commodity production
   QueryEngine* commodity = qe->QueryElement("commodity_production");
   Commodity commod(commodity->GetElementContent("commodity"));
@@ -150,7 +145,6 @@ void CommodConverter::InitFrom(CommodConverter* m) {
   
   // facility params
   process_time(m->process_time());
-  n_reserves(m->n_reserves());
 
   // commodity production
   CopyProducedCommoditiesFrom(m);
@@ -163,7 +157,6 @@ std::string CommodConverter::str() {
   ss << cyclus::FacilityModel::str();
   ss << " has facility parameters {" << "\n"
      << "     Process Time = " << process_time() << ",\n"
-     << "     Commods To Reserve = " << n_reserves() << ",\n"
      << "'}";
   return ss.str();
 }
@@ -175,8 +168,6 @@ void CommodConverter::Deploy(cyclus::Model* parent) {
   FacilityModel::Deploy(parent);
   phase(INITIAL);
   std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
-  //<nix?> This seems to create a material... of 0 mass?... just placeholder?
-  spillover_ = Material::Create(this, 0.0, context()->GetRecipe(rec));
 
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "Commod Converter entering the simuluation";
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << str();
@@ -194,10 +185,8 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << n_processing();  
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
-  //<nix?> I think spillover is unnecessary
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
 
   if (context()->time() == FacLifetime()) {
     int nprocessing = processing_.count();
@@ -209,14 +198,14 @@ void CommodConverter::Tick(int time) {
   } else {
     switch (phase()) {
       case WAITING:
-        if (n_processing() > 0) {
+        if (ProcessingCount() > 0) {
           phase(PROCESS);
         } 
         break;
         
       case INITIAL:
         // special case for a processing primed to go
-        if (n_processing() == n_batches()) phase(PROCESS);
+        if (ProcessingCount() == n_batches()) phase(PROCESS);
         break;
     }
   }
@@ -228,9 +217,8 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << n_processing();
+  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
 
@@ -244,9 +232,8 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << n_processing;
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   
   switch (phase()) {
     case PROCESS:
@@ -272,7 +259,6 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
 
@@ -293,8 +279,7 @@ CommodConverter::GetMatlRequests() {
       break;
     default:
       order_size = n_batches() * batch_size()
-                   - processing_.quantity() - reserves_.quantity()
-                   - spillover_->quantity();
+                   - processing_.quantity() - reserves_.quantity();
       if (order_size > 0) {
         RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
         set.insert(p);
@@ -379,6 +364,16 @@ void CommodConverter::GetMatlTrades(
                                            << " for " << qty
                                            << " of " << commodity;
   }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int CommodConverter::ProcessingCount() {
+  int count = 0;
+  std::map<int, cyclus::ResourceBuff>::const_iterator it;
+  for (it = processing_.begin(); it != processing_.end(); ++it) {
+    count += it->second.count();
+  }
+  return count;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -494,23 +489,9 @@ void CommodConverter::AddCommods_(std::string commod, cyclus::Material::Ptr mat)
                                     << " is adding " << mat->quantity()
                                     << " of material to its reserves.";
 
-  // this is a hack! whatever *was* left in spillover now magically becomes this
-  // new commodity. we need to do something different (maybe) for recycle.
-  spillover_->Absorb(mat);
-  
-  while (!cyclus::IsNegative(spillover_->quantity() - batch_size())) {
-    Material::Ptr batch;
-    // this is a hack to deal with close-to-equal issues between batch size and
-    // the amount of fuel in spillover
-    if (spillover_->quantity() >= batch_size()) {
-      batch = spillover_->ExtractQty(batch_size());
-    } else {
-      batch = spillover_->ExtractQty(spillover_->quantity());
-    }
-    assert(commod != "");
-    crctx_.AddRsrc(commod, batch);
-    reserves_.Push(batch);    
-  }
+  assert(commod != "");
+  crctx_.AddRsrc(commod, mat);
+  reserves_.Push(mat);    
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

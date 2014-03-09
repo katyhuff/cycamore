@@ -117,26 +117,6 @@ class CommodConverter : public cyclus::FacilityModel,
     WAITING, ///< The waiting phase, while the factility has nothing in its reserves
   };
 
-  /// @brief a struct for initial conditions
-  struct InitCond {
-   InitCond() : reserves(false), processing(false), stocks(false) {};
-
-    bool reserves;
-    int n_reserves;
-    std::string reserves_rec;
-    std::string reserves_commod;
-
-    bool processing;
-    int n_processing;
-    std::string processing_rec;
-    std::string processing_commod;
-
-    bool stocks;
-    int n_stocks;
-    std::string stocks_rec;
-    std::string stocks_commod;
-  };
-  
   /* --- Module Members --- */
   /// @param ctx the cyclus context for access to simulation-wide parameters
   CommodConverter(cyclus::Context* ctx);
@@ -250,14 +230,6 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief the current phase
   void phase(Phase p);
   inline Phase phase() const { return phase_; }
-
-  /// @brief this facility's preference for input commodities
-  inline void commod_prefs(const std::map<std::string, double>& prefs) {
-    commod_prefs_ = prefs;
-  }
-  inline const std::map<std::string, double>& commod_prefs() const {
-    return commod_prefs_;
-  }
 
  protected:
   /// @brief moves a batch from processing_ to stocks_

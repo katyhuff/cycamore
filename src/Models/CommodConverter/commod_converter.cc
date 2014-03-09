@@ -23,12 +23,11 @@ CommodConverter::CommodConverter(cyclus::Context* ctx)
     : cyclus::FacilityModel(ctx),
       cyclus::Model(ctx),
       process_time_(1),
-      start_time_(-1),
+      capacity_(std::numeric_limits<double>::max()),
       phase_(INITIAL) {
   if (phase_names_.empty()) {
     SetUpPhaseNames_();
   }
-  spillover_ = cyclus::Material::CreateBlank(0);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,8 +52,8 @@ std::string CommodConverter::schema() {
       "    <data type=\"nonNegativeInteger\"/>       \n"
       "  </element>                                  \n"
       "  <optional>                                  \n"
-      "    <element name =\"orderlookahead\">        \n"
-      "      <data type=\"nonNegativeInteger\"/>     \n"
+      "    <element name =\"capacity\">              \n"
+      "      <data type=\"double\"/>                 \n"
       "    </element>                                \n"
       "  </optional>                                 \n"
       "                                              \n"
@@ -117,6 +116,11 @@ void CommodConverter::InitFrom(cyclus::QueryEngine* qe) {
   string data;
   data = qe->GetElementContent("processtime");
   process_time(lexical_cast<int>(data));
+
+  // facility data optional
+  double cap;
+  cap = qe->GetOptionalQuery<double>(qe, "capacity", capacity());
+  capacity(cap);
 
   // commodity production
   QueryEngine* commodity = qe->QueryElement("commodity_production");
@@ -182,8 +186,6 @@ void CommodConverter::Tick(int time) {
                                     << name()
                                     << " at the beginning of the tick are:";
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -214,8 +216,6 @@ void CommodConverter::Tick(int time) {
                                     << name()
                                     << " at the end of the tick are:";
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -229,8 +229,6 @@ void CommodConverter::Tock(int time) {
                                     << name()
                                     << " at the beginning of the tock are:";
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -254,8 +252,6 @@ void CommodConverter::Tock(int time) {
                                     << name()
                                     << " at the end of the tock are:";
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
@@ -392,10 +388,6 @@ void CommodConverter::phase(CommodConverter::Phase p) {
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "  * from phase: " << phase_names_[phase_];
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "  * to phase: " << phase_names_[p];
   
-  switch (p) {
-    case PROCESS:
-      start_time(context()->time());
-  }
   phase_ = p;
 }
 

@@ -10,7 +10,6 @@
 #include "capacity_constraint.h"
 #include "commodity_producer.h"
 #include "commodity_recipe_context.h"
-#include "enrichment.h"
 #include "exchange_context.h"
 #include "facility_model.h"
 #include "material.h"
@@ -173,7 +172,7 @@ class CommodConverter : public cyclus::FacilityModel,
       cyclus::GenericResource::Ptr> >& responses);
   
   /// @brief Responds to each request for this facility's commodity.  If a given
-  /// request is more than this facility's inventory or SWU capacity, it will
+  /// request is more than this facility's inventory orcapacity, it will
   /// offer its minimum of its capacities.
   virtual std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr>
       GetMatlBids(const cyclus::CommodMap<cyclus::Material>::type&
@@ -214,6 +213,10 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief the processing time required for a full process
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }
+  
+  /// @brief the maximum amount in processing at a single time
+  inline void capacity(double c) { capacity_ = c; }
+  inline int capacity() const { return capacity_; }
   
   /// @brief the preferred number of fresh fuel commods to keep in reserve
   inline int n_reserves() const { return reserves_.count(); }

@@ -228,19 +228,11 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
   
-  switch (phase()) {
-    case PROCESS:
-      int ready = context()->time() - process_time();
-      while (processing_[ready].count() > 0) {
-        Convert_(); // place processing into stocks
-      }
-      BeginProcessing_(); // place reserves into processing
-      phase(WAITING);
-      break;
-    default:
-      BeginProcessing_(); // always try to place reserves into processing 
-      break;
+  int ready = context()->time() - process_time();
+  while (processing_[ready].count() > 0) {
+    Convert_(); // place processing into stocks
   }
+  BeginProcessing_(); // place reserves into processing
 
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "Current facility parameters for "
                                     << name()
@@ -262,18 +254,12 @@ CommodConverter::GetMatlRequests() {
   std::set<RequestPortfolio<Material>::Ptr> set;
   double order_size;
 
-  switch (phase()) {
-    // by default, this facility requests as much incommodity as there is capacity for.
-    // maybe the only exception should be when we're decommissioning...
-    case DECOMM:
-      break;
-    default:
-      order_size = capacity() - reserves_.quantity();
-      if (order_size > 0) {
-        RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
-        set.insert(p);
-      }
-      break;
+  // by default, this facility requests as much incommodity as there is capacity for.
+  // maybe the only exception should be when we're decommissioning...
+  order_size = capacity() - reserves_.quantity();
+  if (order_size > 0) {
+    RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
+    set.insert(p);
   }
 
   return set;
@@ -391,7 +377,6 @@ void CommodConverter::EmptyReserves_() {
   while(reserves_.count() > 0) {
     BeginProcessing_();
     phase(PROCESS);
-    }
   }
 }
 

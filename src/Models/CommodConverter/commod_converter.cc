@@ -24,7 +24,6 @@ CommodConverter::CommodConverter(cyclus::Context* ctx)
       cyclus::Model(ctx),
       process_time_(1),
       start_time_(-1),
-      to_begin_time_(std::numeric_limits<int>::max()),
       n_reserves_(0),
       phase_(INITIAL) {
   if (phase_names_.empty()) {
@@ -195,7 +194,7 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << n_processing();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
   //<nix?> I think spillover is unnecessary
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
@@ -210,8 +209,7 @@ void CommodConverter::Tick(int time) {
   } else {
     switch (phase()) {
       case WAITING:
-        if (n_processing() > 0 &&
-            to_begin_time() <= context()->time()) {
+        if (n_processing() > 0) {
           phase(PROCESS);
         } 
         break;
@@ -230,7 +228,7 @@ void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << n_processing();
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
@@ -246,7 +244,7 @@ void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Start time: " << start_time_;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    End time: " << end_time();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << processing_.count();  
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << n_processing;
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Spillover Qty: " << spillover_->quantity();  
   
@@ -473,14 +471,12 @@ CommodConverter::GetOrder_(double size) {
     assert(recipe != "");
     mat =
         Material::CreateUntracked(size, context()->GetRecipe(recipe));
-    port->AddRequest(mat, this, *it, commod_prefs_[*it]);
+    port->AddRequest(mat, this, *it);
     
     LOG(cyclus::LEV_DEBUG3, "ComCnv") << "CommodConverter " << name()
                                       << " is making an order:";
     LOG(cyclus::LEV_DEBUG3, "ComCnv") << "          size: " << size;
     LOG(cyclus::LEV_DEBUG3, "ComCnv") << "     commodity: " << *it;
-    LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    preference: "
-                                      << commod_prefs_[*it];
   }
 
   CapacityConstraint<Material> cc(size);

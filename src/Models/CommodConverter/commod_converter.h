@@ -105,7 +105,7 @@ namespace cycamore {
 /// in order to remove material, and PopQty will split resources, making new
 /// pointers.
 /// @warning the reactor uses a hackish way to input materials into its
-/// reserves. See the AddBatches_ member function.
+/// reserves. See the AddCommods_ member function.
 class CommodConverter : public cyclus::FacilityModel,
       public cyclus::CommodityProducer {
  public:
@@ -120,27 +120,6 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief a struct for initial conditions
   struct InitCond {
    InitCond() : reserves(false), processing(false), stocks(false) {};
-
-    void AddReserves(int n, std::string rec, std::string commod) {
-      reserves = true;
-      n_reserves = n;
-      reserves_rec = rec;
-      reserves_commod = commod;
-    }
-
-    void AddCore(int n, std::string rec, std::string commod) {
-      processing = true;
-      n_processing = n;
-      processing_rec = rec;
-      processing_commod = commod;
-    }
-
-    void AddStocks(int n, std::string rec, std::string commod) {
-      stocks = true;
-      n_stocks = n;
-      stocks_rec = rec;
-      stocks_commod = commod;
-    }
 
     bool reserves;
     int n_reserves;
@@ -256,25 +235,8 @@ class CommodConverter : public cyclus::FacilityModel,
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }
   
-  /// @brief the starting time of the last (current) process
-  inline void start_time(int t) { start_time_ = t; }
-  inline int start_time() const { return start_time_; }
-
-  /// @brief the ending time of the last (current) process
-  /// @warning the - 1 is to ensure that a 1 period process time that begins on
-  /// the tick ends on the tock
-  inline int end_time() const { return start_time() + process_time() - 1; }
-
-  /// @brief the beginning time for the next phase, set internally
-  inline int to_begin_time() const { return to_begin_time_; }
-
-  /// @brief the number of commods in a full reactor
-  inline void n_commods(int n) { n_commods_ = n; }
-  inline int n_commods() const { return n_commods_; }
-
   /// @brief the preferred number of fresh fuel commods to keep in reserve
-  inline void n_reserves(int n) { n_reserves_ = n; }
-  inline int n_reserves() const { return n_reserves_; }
+  inline int n_reserves() const { return reserves_.count(); }
 
   /// @brief the number of commods currently in the reactor
   inline int n_processing() const { return processing_.count(); }
@@ -312,11 +274,10 @@ class CommodConverter : public cyclus::FacilityModel,
       double qty,
       cyclus::ResourceBuff* buffer);
   
-  /// @brief a cyclus::ResourceBuff for material while they are inside the processing,
-  /// with all materials guaranteed to be of batch_size_
+  /// @brief a cyclus::ResourceBuff for material while they are processing
   cyclus::ResourceBuff processing_;
 
-  /// @brief a cyclus::ResourceBuff for material once they leave the processing.
+  /// @brief a cyclus::ResourceBuff for material once they are done processing.
   /// there is one stocks for each outcommodity
   /// @warning no guarantee can be made to the size of each item in stocks_, as
   /// requests can be met that are larger or smaller than batch_size_
@@ -339,7 +300,7 @@ class CommodConverter : public cyclus::FacilityModel,
   /// of batch_size_. If not, material from mat is added to it and it is
   /// returned to reserves_. If more material remains, chunks of batch_size_ are
   /// removed and added to reserves_. The final chunk may be <= batch_size_.
-  void AddBatches_(std::string commod, cyclus::Material::Ptr mat);
+  void AddCommods_(std::string commod, cyclus::Material::Ptr mat);
   
   /// @brief adds phase names to phase_names_ map
   void SetUpPhaseNames_();
@@ -359,8 +320,7 @@ class CommodConverter : public cyclus::FacilityModel,
   /// @brief allows only commods to enter reserves_
   cyclus::Material::Ptr spillover_;
   
-  /// @brief a cyclus::ResourceBuff for resources before they enter the processing,
-  /// with all materials guaranteed to be of batch_size_
+  /// @brief a cyclus::ResourceBuff for resources before they enter processing
   cyclus::ResourceBuff reserves_;
 
   friend class CommodConverterTest;

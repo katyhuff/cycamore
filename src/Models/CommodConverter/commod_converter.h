@@ -1,6 +1,6 @@
 // commod_converter.h
-#ifndef CYCAMORE_MODELS_COMMODCONVERTER _COMMOD_CONVERTER _H_
-#define CYCAMORE_MODELS_COMMODCONVERTER _COMMOD_CONVERTER _H_
+#ifndef CYCAMORE_MODELS_COMMODCONVERTER_COMMOD_CONVERTER_H_
+#define CYCAMORE_MODELS_COMMODCONVERTER_COMMOD_CONVERTER_H_
 
 #include <map>
 #include <queue>
@@ -281,6 +281,7 @@ class CommodConverter : public cyclus::FacilityModel,
   
   static std::map<Phase, std::string> phase_names_;
   int process_time_;
+  double capacity_;
   Phase phase_;
   
   cyclus::CommodityRecipeContext crctx_;
@@ -294,4 +295,4 @@ class CommodConverter : public cyclus::FacilityModel,
 
 } // namespace cycamore
 
-#endif // CYCAMORE_MODELS_COMMODCONVERTER _COMMOD_CONVERTER _H_
+#endif // CYCAMORE_MODELS_COMMODCONVERTER_COMMOD_CONVERTER_H_

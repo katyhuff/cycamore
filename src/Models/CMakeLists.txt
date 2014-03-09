@@ -9,6 +9,7 @@ FILE(GLOB all_valid_subdirs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*/CMakeLists.t
 # ENDFOREACH(dir)
 
 ADD_SUBDIRECTORY(BatchReactor)
+ADD_SUBDIRECTORY(CommodConverter)
 ADD_SUBDIRECTORY(EnrichmentFacility)
 ADD_SUBDIRECTORY(InproReactor)
 ADD_SUBDIRECTORY(SinkFacility)

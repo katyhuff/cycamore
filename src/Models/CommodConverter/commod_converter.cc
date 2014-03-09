@@ -119,7 +119,7 @@ void CommodConverter::InitFrom(cyclus::QueryEngine* qe) {
 
   // facility data optional
   double cap;
-  cap = qe->GetOptionalQuery<double>(qe, "capacity", capacity());
+  cap = GetOptionalQuery<double>(qe, "capacity", capacity());
   capacity(cap);
 
   // commodity production
@@ -204,11 +204,6 @@ void CommodConverter::Tick(int time) {
           phase(PROCESS);
         } 
         break;
-        
-      case INITIAL:
-        // special case for a processing primed to go
-        if (ProcessingCount() == n_batches()) phase(PROCESS);
-        break;
     }
   }
 
@@ -230,18 +225,17 @@ void CommodConverter::Tock(int time) {
                                     << " at the beginning of the tock are:";
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount;
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
   
   switch (phase()) {
     case PROCESS:
-      if (time == end_time()) {
-        while (ProcessingCount()>0) {
-          Convert_(); // place processing into stocks
-        }
-        BeginProcessing_(); // place reserves into processing
-        phase(WAITING);
+      int ready = context()->time() - process_time();
+      while (processing_[ready].count() > 0) {
+        Convert_(); // place processing into stocks
       }
+      BeginProcessing_(); // place reserves into processing
+      phase(WAITING);
       break;
     default:
       BeginProcessing_(); // always try to place reserves into processing 

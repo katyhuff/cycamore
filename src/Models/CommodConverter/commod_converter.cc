@@ -385,7 +385,7 @@ void CommodConverter::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " added"
                                     <<  " a resource to processing.";
   try {
-    processing_[context->time()].Push(reserves_.Pop());
+    processing_[context()->time()].Push(reserves_.Pop());
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
@@ -400,7 +400,7 @@ void CommodConverter::Convert_() {
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " removed"
                                     <<  " a resource from processing.";
 
-  int ready = context_time()-process_time();  
+  int ready = context()->time()-process_time();  
 
   try {
     Material::Ptr mat = ResCast<Material>(processing_[ready].Pop());

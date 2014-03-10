@@ -154,33 +154,17 @@ class CommodConverter : public cyclus::FacilityModel,
   virtual std::set<cyclus::RequestPortfolio<cyclus::Material>::Ptr>
       GetMatlRequests();
 
-  /// @brief The CommodConverter requests GenericResources of its given 
-  /// commodity. 
-  virtual std::set<cyclus::RequestPortfolio<cyclus::GenericResource>::Ptr>
-      GetGenRsrcRequests();
-
   /// @brief The CommodConverter place accepted trade Materials in their
   /// Inventory
   virtual void AcceptMatlTrades(
       const std::vector< std::pair<cyclus::Trade<cyclus::Material>,
       cyclus::Material::Ptr> >& responses);
   
-  /// @brief The CommodConverter place accepted trade GenericResources in 
-  //their Inventory 
-  virtual void AcceptGenRsrcTrades(
-      const std::vector< std::pair<cyclus::Trade<cyclus::GenericResource>,
-      cyclus::GenericResource::Ptr> >& responses);
-  
   /// @brief Responds to each request for this facility's commodity.  If a given
   /// request is more than this facility's inventory orcapacity, it will
   /// offer its minimum of its capacities.
   virtual std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr>
       GetMatlBids(const cyclus::CommodMap<cyclus::Material>::type&
-                  commod_requests);
-  
-  /// @brief Responds to each request for this facility's commodity.  
-  virtual std::set<cyclus::BidPortfolio<cyclus::GenericResource>::Ptr>
-      GetGenRsrcBids(const cyclus::CommodMap<cyclus::GenericResource>::type&
                   commod_requests);
   
   /// @brief respond to each trade with a material based on the recipe

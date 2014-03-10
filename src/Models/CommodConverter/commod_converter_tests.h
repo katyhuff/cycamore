@@ -23,9 +23,7 @@ class CommodConverterTest : public ::testing::Test {
   std::string in_r1, in_r2, out_r1, out_r2;
   cyclus::CommodityRecipeContext crctx;
 
-  int n_batches, n_load, n_reserves;
-  int process_time, refuel_time, preorder_time;
-  double batch_size;
+  int process_time;
 
   std::string commodity;
   double capacity, cost;
@@ -33,15 +31,6 @@ class CommodConverterTest : public ::testing::Test {
   // init conds
   std::string rsrv_c, rsrv_r, core_c, core_r, stor_c, stor_r;
   int rsrv_n, core_n, stor_n;
-  CommodConverter::InitCond ics;
-
-  // changes changes
-  int change_time;
-  double frompref1, topref1, frompref2, topref2;
-  std::map<std::string, double> commod_prefs;
-  std::map<int, std::vector< std::pair< std::string, double > > > pref_changes;
-  std::map<int, std::vector< std::pair< std::string, std::string > > >
-      recipe_changes;
   
   virtual void SetUp();
   virtual void TearDown();

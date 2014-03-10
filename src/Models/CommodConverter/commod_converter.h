@@ -175,16 +175,6 @@ class CommodConverter : public cyclus::FacilityModel,
     const std::vector< cyclus::Trade<cyclus::Material> >& trades,
     std::vector<std::pair<cyclus::Trade<cyclus::Material>,
     cyclus::Material::Ptr> >& responses);
-
-  /// @brief respond to each trade with a generic resource based
-  /// level given this facility's inventory
-  ///
-  /// @param trades all trades in which this trader is the supplier
-  /// @param responses a container to populate with responses to each trade
-  virtual void GetGenRsrcTrades(
-    const std::vector< cyclus::Trade<cyclus::GenericResource> >& trades,
-    std::vector<std::pair<cyclus::Trade<cyclus::GenericResource>,
-    cyclus::GenericResource::Ptr> >& responses);
   /* --- */
 
   /* --- CommodConverter Members --- */

@@ -46,9 +46,8 @@ namespace cycamore {
 ///
 /// @section params Parameters
 /// A CommodConverter has the following tuneable parameters:
-///   #. batch_size : the size of commods <nix>
 ///   #. n_commods : the number of commods that constitute a full processing <nix>
-///   #. process_time : the number of timesteps a batch process takes
+///   #. process_time : the number of timesteps a conversion process takes
 ///   #. refuel_time : the number of timesteps required to reload the processing after
 ///   a process has finished <0>
 /// 
@@ -88,7 +87,7 @@ namespace cycamore {
 ///
 /// @section ics Initial Conditions
 /// A CommodConverter can be deployed with any number of commods in its reserve,
-/// processing, and stocks buffers. Recipes and commodities for each of these batch
+/// processing, and stocks buffers. Recipes and commodities for each of these
 /// groupings must be specified.
 ///
 /// @todo add decommissioning behavior if material is still in stocks
@@ -206,7 +205,7 @@ class CommodConverter : public cyclus::FacilityModel,
   inline Phase phase() const { return phase_; }
 
  protected:
-  /// @brief moves a batch from processing_ to stocks_
+  /// @brief moves commodities from processing_ to stocks_
   virtual void Convert_();
 
   /// @brief gets bids for a commodity from a buffer
@@ -226,8 +225,7 @@ class CommodConverter : public cyclus::FacilityModel,
 
   /// @brief a cyclus::ResourceBuff for material once they are done processing.
   /// there is one stocks for each outcommodity
-  /// @warning no guarantee can be made to the size of each item in stocks_, as
-  /// requests can be met that are larger or smaller than batch_size_
+  /// @warning no guarantee can be made to the size of each item in stocks_
   std::map<std::string, cyclus::ResourceBuff> stocks_;
 
  private:
@@ -244,10 +242,6 @@ class CommodConverter : public cyclus::FacilityModel,
 
   /// @brief Add a blob of incoming material to reserves_
   ///
-  /// The last material to join reserves_ is first investigated to see if it is
-  /// of batch_size_. If not, material from mat is added to it and it is
-  /// returned to reserves_. If more material remains, chunks of batch_size_ are
-  /// removed and added to reserves_. The final chunk may be <= batch_size_.
   void AddCommods_(std::string commod, cyclus::Material::Ptr mat);
   
   /// @brief adds phase names to phase_names_ map

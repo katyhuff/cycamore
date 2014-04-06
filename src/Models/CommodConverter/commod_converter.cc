@@ -536,8 +536,8 @@ cyclus::Material::Ptr CommodConverter::TradeResponse_(
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::SetUpPhaseNames_() {
   phase_names_.insert(std::make_pair(INITIAL, "initialization"));
-  phase_names_.insert(std::make_pair(PROCESS, "processing batch(es)"));
-  phase_names_.insert(std::make_pair(WAITING, "waiting for fuel"));
+  phase_names_.insert(std::make_pair(PROCESS, "processing commodities"));
+  phase_names_.insert(std::make_pair(WAITING, "waiting for stocks"));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

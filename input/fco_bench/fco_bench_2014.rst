@@ -48,6 +48,7 @@ Facilities
 LWRs
 ....
 
+- FacilityModel: BatchReactor
 - 1000 MWe per reactor
 - 0.90 Capacity Factor
 - 3 batches per core
@@ -75,6 +76,7 @@ LWRs
 SFRs
 ....
 
+- FacilityModel: BatchReactor
 - 333.3 MWe per reactor (1000/3)
 - 0.90 Capacity Factor
 - Deployment : deploy 3 when sufficient SFR fuel is available (83515 tons LWR UNF)
@@ -103,6 +105,7 @@ SFRs
 LWR UNF Wet Storage
 ...................
 
+- FacilityModel: CommodConverter
 - LWR fuel must be cooled for 4 years before reprocessing
 - Input: 
   
@@ -115,6 +118,7 @@ LWR UNF Wet Storage
 SFR UNF Wet Storage
 ...................
 
+- FacilityModel: CommodConverter
 - SFR fuel must be cooled for 1 year before reprocessing
 - Input: 
   
@@ -128,6 +132,7 @@ SFR UNF Wet Storage
 LWR UNF Reprocessing
 .....................
 
+- FacilityModel: FCOReprocessing
 - Start Date : 2025
 - 2000 tHM/year Capacity
 - There are no reprocessing losses
@@ -144,6 +149,7 @@ LWR UNF Reprocessing
 SFR UNF Reprocessing
 .....................
 
+- FacilityModel: FCOReprocessing
 - Start Date : when needed
 - Unlimited Capacity
 - There are no reprocessing losses
@@ -160,6 +166,7 @@ SFR UNF Reprocessing
 Enrichment
 ..........
 
+- FacilityModel: Enrichment
 - Natural U enrichment = 0.711 wt%
 - Depleted U enrichment =  0.25 wt%
 - ''Enrichment Time'' for LWR fuel = 1 year
@@ -175,6 +182,7 @@ Enrichment
 LWR Fuel Fabrication
 ....................
 
+- FacilityModel: CommodConverter
 - Fabrication time = 1 year
 - Fissionable material source = LEU
 - Input:
@@ -189,6 +197,7 @@ LWR Fuel Fabrication
 SFR Fuel Fabrication
 ....................
 
+- FacilityModel: FCOFuelFab
 - Fabrication time = 1 year
 - Input (by preference):
 

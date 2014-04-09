@@ -38,7 +38,7 @@ std::string CommodConverter::schema() {
   return
       "  <!-- cyclus::Material In/Out  -->           \n"
       "  <oneOrMore>                                 \n"
-      "  <element name=\"fuel\">                     \n"
+      "  <element name=\"commod_pair\">              \n"
       "   <ref name=\"incommodity\"/>                \n"
       "   <ref name=\"inrecipe\"/>                   \n"
       "   <ref name=\"outcommodity\"/>               \n"

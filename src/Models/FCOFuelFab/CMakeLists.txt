@@ -1,1 +1,1 @@
-cyclus_init_model("CommodConverter" "commod_converter")
+cyclus_init_model("FCOFuelFab" "fco_fuel_fab")

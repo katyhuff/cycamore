@@ -1,5 +1,5 @@
-#ifndef CYCAMORE_MODELS_COMMODCONVERTER_COMMOD_CONVERTER_TESTS_
-#define CYCAMORE_MODELS_COMMODCONVERTER_COMMOD_CONVERTER_TESTS_
+#ifndef CYCAMORE_MODELS_FCOFUELFAB_FCO_FUEL_FAB_TESTS_
+#define CYCAMORE_MODELS_FCOFUELFAB_FCO_FUEL_FAB_TESTS_
 
 #include <gtest/gtest.h>
 
@@ -8,15 +8,15 @@
 
 #include "test_context.h"
 
-#include "commod_converter.h"
+#include "fco_fuel_fab.h"
 
 namespace cycamore {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class CommodConverterTest : public ::testing::Test {
+class FCOFuelFabTest : public ::testing::Test {
  protected:
   cyclus::TestContext tc_;
-  CommodConverter* src_facility;
+  FCOFuelFab* src_facility;
 
   // init params
   std::string in_c1, in_c2, out_c1, out_c2;
@@ -38,12 +38,12 @@ class CommodConverterTest : public ::testing::Test {
   void SetUpSourceFacility();
 
   /// @brief tests the initial state of a facility
-  void TestInitState(CommodConverter* fac);
+  void TestInitState(FCOFuelFab* fac);
 
   /// @brief tests the number of batches in each buffer
   void TestBuffs(int nreserves, int ncore, int nstorage);
   
-  /// @brief tests the CommodConverter's reserves_, by calling AddBatches_(mat),
+  /// @brief tests the FCOFuelFab's reserves_, by calling AddBatches_(mat),
   /// and confirming that there are n items and the last item has quantity qty
   void TestReserveBatches(cyclus::Material::Ptr mat, std::string commod,
                           int n, double qty);
@@ -59,4 +59,4 @@ class CommodConverterTest : public ::testing::Test {
 
 } // namespace cycamore
 
-#endif // CYCAMORE_MODELS_COMMODCONVERTER_COMMOD_CONVERTER_TESTS_
+#endif // CYCAMORE_MODELS_FCOFUELFAB_FCO_FUEL_FAB_TESTS_

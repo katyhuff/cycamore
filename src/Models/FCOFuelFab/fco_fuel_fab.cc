@@ -105,16 +105,16 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
 
   // out goal recipe
   QueryEngine* outpair = qe->QueryElement("outpair", 0);
-  std::stroutg out_c = pair->GetElementContent("outcommodity");
-  std::stroutg out_r = pair->GetElementContent("outrecipe");
+  std::string out_c = outpair->GetElementContent("outcommodity");
+  std::string out_r = outpair->GetElementContent("outrecipe");
   
   // in/out pair
   int npairs = qe->NElementsMatchingQuery("inpair");
   for (int i = 0; i < npairs; i++) {
-    QueryEngine* pair = qe->QueryElement("inpair", i);
-    std::string in_c = pair->GetElementContent("incommodity");
-    std::string in_r = pair->GetElementContent("inrecipe");
-    crctx_.AddInCommod(in_c, in_r, out_c, out_r;
+    QueryEngine* inpair = qe->QueryElement("inpair", i);
+    std::string in_c = inpair->GetElementContent("incommodity");
+    std::string in_r = inpair->GetElementContent("inrecipe");
+    crctx_.AddInCommod(in_c, in_r, out_c, out_r);
   }
 
   // facility data required

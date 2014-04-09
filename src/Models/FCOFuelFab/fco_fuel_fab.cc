@@ -22,7 +22,7 @@ std::map<FCOFuelFab::Phase, std::string> FCOFuelFab::phase_names_ =
 FCOFuelFab::FCOFuelFab(cyclus::Context* ctx)
     : cyclus::FacilityModel(ctx),
       cyclus::Model(ctx),
-      process_time_(1),
+      process_time_(0),
       capacity_(std::numeric_limits<double>::max()),
       phase_(INITIAL) {
   if (phase_names_.empty()) {
@@ -38,13 +38,15 @@ std::string FCOFuelFab::schema() {
   return
       "  <!-- cyclus::Material In/Out  -->           \n"
       "  <oneOrMore>                                 \n"
-      "  <element name=\"fuel\">                     \n"
+      "  <element name=\"inpair\">                   \n"
       "   <ref name=\"incommodity\"/>                \n"
       "   <ref name=\"inrecipe\"/>                   \n"
+      "  </element>                                  \n"
+      "  </oneOrMore>                                \n"
+      "  <element name=\"outpair\">                  \n"
       "   <ref name=\"outcommodity\"/>               \n"
       "   <ref name=\"outrecipe\"/>                  \n"
       "  </element>                                  \n"
-      "  </oneOrMore>                                \n"
       "                                              \n"
       "  <!-- Facility Parameters -->                \n"
       "  <interleave>                                \n"
@@ -101,15 +103,18 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   using cyclus::QueryEngine;
   using std::string;
 
-  // in/out fuel
-  int nfuel = qe->NElementsMatchingQuery("commodpair");
-  for (int i = 0; i < nfuel; i++) {
-    QueryEngine* fuel = qe->QueryElement("commodpair", i);
-    std::string in_c = fuel->GetElementContent("incommodity");
-    std::string in_r = fuel->GetElementContent("inrecipe");
-    std::string out_c = fuel->GetElementContent("outcommodity");
-    std::string out_r = fuel->GetElementContent("outrecipe");
-    crctx_.AddInCommod(in_c, in_r, out_c, out_r);
+  // out goal recipe
+  QueryEngine* outpair = qe->QueryElement("outpair", 0);
+  std::stroutg out_c = pair->GetElementContent("outcommodity");
+  std::stroutg out_r = pair->GetElementContent("outrecipe");
+  
+  // in/out pair
+  int npairs = qe->NElementsMatchingQuery("inpair");
+  for (int i = 0; i < npairs; i++) {
+    QueryEngine* pair = qe->QueryElement("inpair", i);
+    std::string in_c = pair->GetElementContent("incommodity");
+    std::string in_r = pair->GetElementContent("inrecipe");
+    crctx_.AddInCommod(in_c, in_r, out_c, out_r;
   }
 
   // facility data required

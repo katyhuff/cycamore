@@ -187,6 +187,8 @@ void FCOFuelFab::Deploy(cyclus::Model* parent) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::Tick(int time) {
   LOG(cyclus::LEV_INFO3, "FCOFF") << name() << " is ticking at time "
                                    << time << " {";
@@ -324,6 +326,21 @@ FCOFuelFab::GetMatlBids(const cyclus::CommodMap<cyclus::Material>::type&
   }
   
   return ports;
+}
+
+
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFab::PrintStatus(std::string when) { 
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "Current facility parameters for "
+                                    << name()
+                                    << " at " << when << " are:";
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NReserves: " << reserves_.count();
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NProcessing: " << ProcessingCount();
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NStocks: " << StocksCount();  
+
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -192,15 +192,8 @@ void FCOFuelFab::Deploy(cyclus::Model* parent) {
 void FCOFuelFab::Tick(int time) {
   LOG(cyclus::LEV_INFO3, "FCOFF") << name() << " is ticking at time "
                                    << time << " {";
+  PrintStatus("at the beginning of the tick ");
                                     
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "Current facility parameters for "
-                                    << name()
-                                    << " at the beginning of the tick are:";
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NStocks: " << StocksCount();  
-
   if (context()->time() == FacLifetime()) {
     int nprocessing = ProcessingCount();
     LOG(cyclus::LEV_DEBUG1, "FCOFF") << "lifetime reached, dumping:"
@@ -218,26 +211,14 @@ void FCOFuelFab::Tick(int time) {
     }
   }
 
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "Current facility parameters for "
-                                    << name()
-                                    << " at the end of the tick are:";
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the end of the tick ");
   LOG(cyclus::LEV_INFO3, "FCOFF") << "}";
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::Tock(int time) {
   LOG(cyclus::LEV_INFO3, "FCOFF") << name() << " is tocking {";
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "Current facility parameters for "
-                                    << name()
-                                    << " at the beginning of the tock are:";
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the beginning of the tock ");
   
   int ready = context()->time() - process_time();
   while (processing_[ready].count() > 0) {
@@ -245,13 +226,7 @@ void FCOFuelFab::Tock(int time) {
   }
   BeginProcessing_(); // place reserves into processing
 
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "Current facility parameters for "
-                                    << name()
-                                    << " at the end of the tock are:";
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG3, "FCOFF") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the end of the tock ");
   LOG(cyclus::LEV_INFO3, "FCOFF") << "}";
 }
 
@@ -327,9 +302,6 @@ FCOFuelFab::GetMatlBids(const cyclus::CommodMap<cyclus::Material>::type&
   
   return ports;
 }
-
-
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::PrintStatus(std::string when) { 

@@ -149,6 +149,7 @@ void CommodConverter::InitFrom(CommodConverter* m) {
   
   // facility params
   process_time(m->process_time());
+  capacity(m->capacity());
 
   // commodity production
   CopyProducedCommoditiesFrom(m);
@@ -161,6 +162,7 @@ std::string CommodConverter::str() {
   ss << cyclus::FacilityModel::str();
   ss << " has facility parameters {" << "\n"
      << "     Process Time = " << process_time() << ",\n"
+     << "     Capacity = " << capacity() << ",\n"
      << "'}";
   return ss.str();
 }
@@ -171,7 +173,8 @@ void CommodConverter::Deploy(cyclus::Model* parent) {
 
   FacilityModel::Deploy(parent);
   phase(INITIAL);
-  std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
+  // not sure we need this
+  // std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
 
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "Commod Converter entering the simuluation";
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << str();
@@ -181,14 +184,7 @@ void CommodConverter::Deploy(cyclus::Model* parent) {
 void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_INFO3, "ComCnv") << name() << " is ticking at time "
                                    << time << " {";
-                                    
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "Current facility parameters for "
-                                    << name()
-                                    << " at the beginning of the tick are:";
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the beginning of the tick")
 
   if (context()->time() == FacLifetime()) {
     int nprocessing = ProcessingCount();
@@ -207,26 +203,14 @@ void CommodConverter::Tick(int time) {
     }
   }
 
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "Current facility parameters for "
-                                    << name()
-                                    << " at the end of the tick are:";
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the end of the tick")
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_INFO3, "ComCnv") << name() << " is tocking {";
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "Current facility parameters for "
-                                    << name()
-                                    << " at the beginning of the tock are:";
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the beginning of the tock")
   
   int ready = context()->time() - process_time();
   while (processing_[ready].count() > 0) {
@@ -234,13 +218,7 @@ void CommodConverter::Tock(int time) {
   }
   BeginProcessing_(); // place reserves into processing
 
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "Current facility parameters for "
-                                    << name()
-                                    << " at the end of the tock are:";
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NReserves: " << reserves_.count();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NProcessing: " << ProcessingCount();
-  LOG(cyclus::LEV_DEBUG3, "ComCnv") << "    NStocks: " << StocksCount();  
+  PrintStatus("at the end of the tock")
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
 
@@ -342,6 +320,27 @@ void CommodConverter::GetMatlTrades(
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void CommodConverter::PrintStatus(std::string when) { 
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "Current facility parameters for "
+                                    << name()
+                                    << " at " << when << " are:";
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    Phase: " << phase_names_[phase_]; 
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NReserves: " << reserves_.count();
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NProcessing: " << ProcessingCount();
+  LOG(cyclus::LEV_DEBUG4, "ComCnv") << "    NStocks: " << StocksCount();  
+
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+double CommodConverter::ProcessingAmt() {
+  double count = 0;
+  std::map<int, cyclus::ResourceBuff>::const_iterator it;
+  for (it = processing_.begin(); it != processing_.end(); ++it) {
+    amt += it->second.quantity();
+  }
+  return amt;
+}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int CommodConverter::ProcessingCount() {
   int count = 0;
   std::map<int, cyclus::ResourceBuff>::const_iterator it;
@@ -373,8 +372,7 @@ void CommodConverter::phase(CommodConverter::Phase p) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::EmptyReserves_() {
-  /// @TODO could add process capacity constraint here
-  while(reserves_.count() > 0) {
+  while(reserves_.count() > 0 && ProcessingAmt() < capacity()) {
     BeginProcessing_();
     phase(PROCESS);
   }

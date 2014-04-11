@@ -154,6 +154,7 @@ void FCOFuelFab::InitFrom(FCOFuelFab* m) {
   
   // facility params
   process_time(m->process_time());
+  capacity(m->capacity());
 
   // commodity production
   CopyProducedCommoditiesFrom(m);
@@ -166,6 +167,7 @@ std::string FCOFuelFab::str() {
   ss << cyclus::FacilityModel::str();
   ss << " has facility parameters {" << "\n"
      << "     Process Time = " << process_time() << ",\n"
+     << "     Capacity = " << capacity() << ",\n"
      // list commodities?
      << "'}";
   return ss.str();
@@ -177,7 +179,8 @@ void FCOFuelFab::Deploy(cyclus::Model* parent) {
 
   FacilityModel::Deploy(parent);
   phase(INITIAL);
-  std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
+  // why do we need this?
+  // std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
 
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCO Fuel Fab entering the simuluation";
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << str();

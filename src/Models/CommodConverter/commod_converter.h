@@ -177,6 +177,13 @@ class CommodConverter : public cyclus::FacilityModel,
   /* --- */
 
   /* --- CommodConverter Members --- */
+  /// @brief prints the status of the facility
+  /// @param when gives text to insert (i.e. "at the beginning of the tock")
+  void PrintStatus(std::string when)
+
+  /// @return the total amount (e.g. mass) of the commods in processing
+  double ProcessingAmt();
+
   /// @return the total number of commods in processing
   int ProcessingCount();
 

@@ -257,7 +257,8 @@ t information about this model
   int process_time_;
   double capacity_;
   Phase phase_;
-  
+  std::set<std::string>;
+
   cyclus::CommodityRecipeContext crctx_;
   
   /// @brief a cyclus::ResourceBuff for resources before they enter processing

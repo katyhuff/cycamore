@@ -47,6 +47,18 @@ std::string FCOFuelFab::schema() {
       "   <ref name=\"outcommodity\"/>               \n"
       "   <ref name=\"outrecipe\"/>                  \n"
       "  </element>                                  \n"
+      "  <oneOrMore>                                 \n"
+      "  <element name=\"preflist\">                 \n"
+      "   <element name=\"prefiso\">                 \n"
+      "     <data type=\"integer\"/>                 \n"
+      "   </element>                                 \n"
+      "   <oneOrMore>                                \n"
+      "   <element name=\"sourcecommod\">            \n"
+      "     <data type=\"string\"/>                  \n"
+      "   </element>                                 \n"
+      "   </oneOrMore>                               \n"
+      "  </oneOrMore>                                \n"
+      "  </element>                                  \n"
       "                                              \n"
       "  <!-- Facility Parameters -->                \n"
       "  <interleave>                                \n"
@@ -113,6 +125,20 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   for (int i = 0; i < npairs; i++) {
     QueryEngine* inpair = qe->QueryElement("inpair", i);
     std::string in_c = inpair->GetElementContent("incommodity");
+    std::string in_r = inpair->GetElementContent("inrecipe");
+    crctx_.AddInCommod(in_c, in_r, out_c, out_r);
+  }
+
+  // recipe building preferences
+  int nlists = qe->NElementsMatchingQuery("preflist");
+  for (int i = 0; i < nlists; i++) {
+    QueryEngine* preflist = qe->QueryElement("preflist", i);
+    int prefiso = lexical_cast<int>(preflist->GetElementContent("prefiso"));
+    int ncommods = preflist->NElementsMatchingQuery("sourcecommod")
+    for (int j = 0; j < ncommods; i++){
+      std::string commod = prefiso->GetElementContent("sourcecomod",j)
+      prefs[prefiso].push_back(commod); //TODO check that this is right
+    }
     std::string in_r = inpair->GetElementContent("inrecipe");
     crctx_.AddInCommod(in_c, in_r, out_c, out_r);
   }
@@ -387,6 +413,43 @@ void FCOFuelFab::BeginProcessing_() {
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
+  }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+UntrackedMaterial FCOFuelFab::GoalDiff_(){
+  UntrackedMaterial to_ret = UntrackedMaterial(goal_.comp() - 
+      processing_[context()->time()].front().comp());
+  return to_ret 
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFab::MeetNeed(iso, add_mat){
+  if add_mat.comp(iso) < GoalDiff_.comp(iso){
+    processing_[context()->time()].front().Absorb(add_mat);
+  } else if add_mat.comp(iso) > GoalDiff_().comp(iso){
+    part = add_mat.subtract(GoalDiff_().comp(iso));
+    processing_[context()->time()].front().Absorb(part)
+  } else if add_mat.comp(iso) == need.comp(iso){
+    processing_[context()->time()].front().Absorb(add_mat);
+  }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFab::FabFuel_(){
+  while goal_diff(to_ret).comp(u) > 0{
+    for pref in u_prefs{
+      for mat in avail_mats[pref]{
+        MeetNeed_(u, to_ret, mat)
+      }
+    }
+  }
+  while goal_diff(to_ret).comp(tru) > 0{
+    for pref in tru_prefs{
+      for mat in avail_mats[pref]{
+        MeetNeed_(tru, to_ret, mat)
+      }
+    }
   }
 }
 

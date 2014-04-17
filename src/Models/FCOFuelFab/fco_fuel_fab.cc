@@ -119,6 +119,7 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   QueryEngine* outpair = qe->QueryElement("outpair", 0);
   std::string out_c = outpair->GetElementContent("outcommodity");
   std::string out_r = outpair->GetElementContent("outrecipe");
+  out_recipe_ = out_r;
   
   // in/out pair
   int npairs = qe->NElementsMatchingQuery("inpair");
@@ -416,8 +417,10 @@ void FCOFuelFab::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-UntrackedMaterial FCOFuelFab::GoalDiff_(){
-  UntrackedMaterial to_ret = UntrackedMaterial(goal_.comp() - 
+cyclus::Material::Ptr FCOFuelFab::GoalDiff_(){
+  in
+  cyclus::Material::Ptr to_ret = CreateUntracked( 
+      context()->GetRecipe(out_recipe_) -
       processing_[context()->time()].front().comp());
   return to_ret;
 }

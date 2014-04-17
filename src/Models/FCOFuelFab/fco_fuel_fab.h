@@ -241,6 +241,9 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// and, for each object, adds a start_time to the list of start times
   void BeginProcessing_();
   
+  /// @brief calculates the material object that will reach the goal
+  cyclus::Material::Ptr GoalDiff_();
+  
   /// @brief construct a request portfolio for an order of a given size
   cyclus::RequestPortfolio<cyclus::Material>::Ptr GetOrder_(double size);
 
@@ -257,6 +260,8 @@ class FCOFuelFab : public cyclus::FacilityModel,
   Phase phase_;
   std::set<std::string>;
 
+  /// @brief the name of the goal recipe
+  std::string out_recipe_;
   cyclus::CommodityRecipeContext crctx_;
   
   /// @brief a cyclus::ResourceBuff for resources before they enter processing

@@ -130,9 +130,7 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// initialize members from a different model
   void InitFrom(FCOFuelFab* m);
   
-  /// Pr
-
-t information about this model
+  /// Print information about this model
   virtual std::string str();
   /* --- */
 

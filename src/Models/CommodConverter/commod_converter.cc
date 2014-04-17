@@ -184,7 +184,7 @@ void CommodConverter::Deploy(cyclus::Model* parent) {
 void CommodConverter::Tick(int time) {
   LOG(cyclus::LEV_INFO3, "ComCnv") << name() << " is ticking at time "
                                    << time << " {";
-  PrintStatus("at the beginning of the tick")
+  PrintStatus("at the beginning of the tick");
 
   if (context()->time() == FacLifetime()) {
     int nprocessing = ProcessingCount();
@@ -203,14 +203,14 @@ void CommodConverter::Tick(int time) {
     }
   }
 
-  PrintStatus("at the end of the tick")
+  PrintStatus("at the end of the tick");
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CommodConverter::Tock(int time) {
   LOG(cyclus::LEV_INFO3, "ComCnv") << name() << " is tocking {";
-  PrintStatus("at the beginning of the tock")
+  PrintStatus("at the beginning of the tock");
   
   int ready = context()->time() - process_time();
   while (processing_[ready].count() > 0) {
@@ -218,7 +218,7 @@ void CommodConverter::Tock(int time) {
   }
   BeginProcessing_(); // place reserves into processing
 
-  PrintStatus("at the end of the tock")
+  PrintStatus("at the end of the tock");
   LOG(cyclus::LEV_INFO3, "ComCnv") << "}";
 }
 
@@ -333,7 +333,7 @@ void CommodConverter::PrintStatus(std::string when) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 double CommodConverter::ProcessingAmt() {
-  double count = 0;
+  double amt = 0;
   std::map<int, cyclus::ResourceBuff>::const_iterator it;
   for (it = processing_.begin(); it != processing_.end(); ++it) {
     amt += it->second.quantity();

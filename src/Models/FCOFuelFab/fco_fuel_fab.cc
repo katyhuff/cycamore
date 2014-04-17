@@ -134,13 +134,12 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   for (int i = 0; i < nlists; i++) {
     QueryEngine* preflist = qe->QueryElement("preflist", i);
     int prefiso = lexical_cast<int>(preflist->GetElementContent("prefiso"));
-    int ncommods = preflist->NElementsMatchingQuery("sourcecommod")
-    for (int j = 0; j < ncommods; i++){
-      std::string commod = prefiso->GetElementContent("sourcecomod",j)
-      prefs[prefiso].push_back(commod); //TODO check that this is right
+    int ncommods = preflist->NElementsMatchingQuery("sourcecommod");
+    std::vector< std::pair<int,  Commodity> > prefs;
+    for (int j = 0; j < ncommods; j++){
+      std::string commod = preflist->GetElementContent("sourcecomod",j);
+      prefs.push_back(make_pair(prefiso, commod)); //TODO check that this is right
     }
-    std::string in_r = inpair->GetElementContent("inrecipe");
-    crctx_.AddInCommod(in_c, in_r, out_c, out_r);
   }
 
   // facility data required
@@ -420,16 +419,16 @@ void FCOFuelFab::BeginProcessing_() {
 UntrackedMaterial FCOFuelFab::GoalDiff_(){
   UntrackedMaterial to_ret = UntrackedMaterial(goal_.comp() - 
       processing_[context()->time()].front().comp());
-  return to_ret 
+  return to_ret;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFab::MeetNeed(iso, add_mat){
+void FCOFuelFab::MeetNeed(int iso, cyclus::Material add_mat){
   if add_mat.comp(iso) < GoalDiff_.comp(iso){
     processing_[context()->time()].front().Absorb(add_mat);
   } else if add_mat.comp(iso) > GoalDiff_().comp(iso){
     part = add_mat.subtract(GoalDiff_().comp(iso));
-    processing_[context()->time()].front().Absorb(part)
+    processing_[context()->time()].front().Absorb(part);
   } else if add_mat.comp(iso) == need.comp(iso){
     processing_[context()->time()].front().Absorb(add_mat);
   }
@@ -437,17 +436,13 @@ void FCOFuelFab::MeetNeed(iso, add_mat){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
-  while goal_diff(to_ret).comp(u) > 0{
-    for pref in u_prefs{
-      for mat in avail_mats[pref]{
-        MeetNeed_(u, to_ret, mat)
-      }
-    }
-  }
-  while goal_diff(to_ret).comp(tru) > 0{
-    for pref in tru_prefs{
-      for mat in avail_mats[pref]{
-        MeetNeed_(tru, to_ret, mat)
+
+  for iso in prefs.keys(){
+    while(GoalDiff_(to_ret).comp(iso) > 0){
+      for(it=prefs[iso].begin(); it=prefs[iso].end(), ++it){
+        for mat in avail_mats[pref]{
+          MeetNeed(iso, mat);
+        }
       }
     }
   }

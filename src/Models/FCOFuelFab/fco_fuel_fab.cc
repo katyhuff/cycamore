@@ -177,6 +177,7 @@ void FCOFuelFab::InitFrom(FCOFuelFab* m) {
   
   // in/out commodity & resource context
   crctx_ = m->crctx_;
+  out_recipe(m->out_recipe());
   
   // facility params
   process_time(m->process_time());
@@ -205,15 +206,11 @@ void FCOFuelFab::Deploy(cyclus::Model* parent) {
 
   FacilityModel::Deploy(parent);
   phase(INITIAL);
-  // why do we need this?
-  // std::string rec = crctx_.in_recipe(*crctx_.in_commods().begin());
 
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCO Fuel Fab entering the simuluation";
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << str();
 }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::Tick(int time) {
   LOG(cyclus::LEV_INFO3, "FCOFF") << name() << " is ticking at time "
@@ -221,14 +218,11 @@ void FCOFuelFab::Tick(int time) {
   PrintStatus("at the beginning of the tick ");
                                     
   if (context()->time() == FacLifetime()) {
-    int nprocessing = ProcessingCount();
-    LOG(cyclus::LEV_DEBUG1, "FCOFF") << "lifetime reached, dumping:"
-                                      << nprocessing << " commods.";
-    for (int i = 0; i < nprocessing; i++) {
-      Convert_(); // unload
-    }
+    EndLife();
   } else {
     switch (phase()) {
+      case PROCESSING:
+        break; // process on the tock.
       case WAITING:
         if (ProcessingCount() > 0) {
           phase(PROCESS);
@@ -242,15 +236,25 @@ void FCOFuelFab::Tick(int time) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFab::EndLife(){
+    int nprocessing = ProcessingCount();
+    LOG(cyclus::LEV_DEBUG1, "FCOFF") << "lifetime reached, dumping:"
+                                      << nprocessing << " commods.";
+    for (int i = 0; i < nprocessing; i++) {
+      Convert_(); // unload
+    }
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::Tock(int time) {
   LOG(cyclus::LEV_INFO3, "FCOFF") << name() << " is tocking {";
   PrintStatus("at the beginning of the tock ");
   
+  BeginProcessing_(); // place reserves into processing
   int ready = context()->time() - process_time();
-  while (processing_[ready].count() > 0) {
+  while (processing_[ready].count(commod) > 0) {
     Convert_(); // place processing into stocks
   }
-  BeginProcessing_(); // place reserves into processing
 
   PrintStatus("at the end of the tock ");
   LOG(cyclus::LEV_INFO3, "FCOFF") << "}";
@@ -268,13 +272,23 @@ FCOFuelFab::GetMatlRequests() {
 
   // by default, this facility requests as much incommodity as there is capacity for.
   // maybe the only exception should be when we're decommissioning...
-  order_size = capacity() - reserves_.quantity();
+  order_size = capacity() - ReservesQty_();
   if (order_size > 0) {
     RequestPortfolio<Material>::Ptr p = GetOrder_(order_size);
     set.insert(p);
   }
 
   return set;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+double FCOFuelFab::ReservesQty_(){
+  std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
+  double amt = 0;
+  for (it = reserves_.begin(); it != reserves_.end(); it++){
+    amt += it.second().quantity();
+  }
+  return amt;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -335,7 +349,7 @@ void FCOFuelFab::PrintStatus(std::string when) {
                                     << name()
                                     << " at " << when << " are:";
   LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NReserves: " << reserves_.count();
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NReserves: " << ReservesQty_();
   LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NProcessing: " << ProcessingCount();
   LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NStocks: " << StocksCount();  
 
@@ -398,7 +412,7 @@ void FCOFuelFab::phase(FCOFuelFab::Phase p) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::EmptyReserves_() {
   /// @TODO could add process capacity constraint here
-  while(reserves_.count() > 0) {
+  while(ReservesQty_() > 0) {
     BeginProcessing_();
     phase(PROCESS);
   }
@@ -408,8 +422,10 @@ void FCOFuelFab::EmptyReserves_() {
 void FCOFuelFab::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " added"
                                     <<  " a resource to processing.";
+  std::vector<std::string>::const_iterator it;
   try {
-    processing_[context()->time()].Push(reserves_.Pop());
+    for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
+      processing_[(*it)][context()->time()].Push(reserves_[(*it)].Pop());
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
@@ -418,10 +434,9 @@ void FCOFuelFab::BeginProcessing_() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::Material::Ptr FCOFuelFab::GoalDiff_(){
-  in
   cyclus::Material::Ptr to_ret = CreateUntracked( 
       context()->GetRecipe(out_recipe_) -
-      processing_[context()->time()].front().comp());
+      processing_[context()->time()].Pop().comp());
   return to_ret;
 }
 
@@ -522,7 +537,7 @@ void FCOFuelFab::AddCommods_(std::string commod, cyclus::Material::Ptr mat) {
 
   assert(commod != "");
   crctx_.AddRsrc(commod, mat);
-  reserves_.Push(mat);    
+  reserves_[commod].Push(mat); 
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

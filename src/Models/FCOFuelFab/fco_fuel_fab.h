@@ -195,9 +195,6 @@ class FCOFuelFab : public cyclus::FacilityModel,
   inline void capacity(double c) { capacity_ = c; }
   inline int capacity() const { return capacity_; }
   
-  /// @brief the preferred number of fresh fuel commods to keep in reserve
-  inline int n_reserves() const { return reserves_.count(); }
-
   /// @brief this facility's commodity-recipe context
   inline void crctx(const cyclus::CommodityRecipeContext& crctx) {
     crctx_ = crctx;
@@ -224,8 +221,8 @@ class FCOFuelFab : public cyclus::FacilityModel,
       cyclus::ResourceBuff* buffer);
   
   /// @brief a cyclus::ResourceBuff for material while they are processing
-  /// there is one processing buffer for each processing start time
-  std::map<int, cyclus::ResourceBuff> processing_;
+  /// there is one processing buffer for each processing start time and incommod
+  std::map<int, std::map< std::string, cyclus::ResourceBuff > > processing_;
 
   /// @brief a cyclus::ResourceBuff for material once they are done processing.
   /// there is one stocks for each outcommodity
@@ -248,7 +245,6 @@ class FCOFuelFab : public cyclus::FacilityModel,
   cyclus::RequestPortfolio<cyclus::Material>::Ptr GetOrder_(double size);
 
   /// @brief Add a blob of incoming material to reserves_
-  ///
   void AddCommods_(std::string commod, cyclus::Material::Ptr mat);
   
   /// @brief adds phase names to phase_names_ map
@@ -264,8 +260,9 @@ class FCOFuelFab : public cyclus::FacilityModel,
   std::string out_recipe_;
   cyclus::CommodityRecipeContext crctx_;
   
-  /// @brief a cyclus::ResourceBuff for resources before they enter processing
-  cyclus::ResourceBuff reserves_;
+  /// @brief a map from commods to cyclus::ResourceBuff for resources before 
+  /// they enter processing
+  std::map<std::string, cyclus::ResourceBuff> reserves_;
 
   friend class FCOFuelFabTest;
   /* --- */

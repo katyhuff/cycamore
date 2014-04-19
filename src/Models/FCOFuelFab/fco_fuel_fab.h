@@ -184,12 +184,19 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @return the total number of commods in processing
   int ProcessingCount();
 
+  /// @return the total quantity of commods in reserves
+  double ReservesQty_();
+
   /// @return the total number of commods in stocks
   int StocksCount();
-  
+
   /// @brief the processing time required for a full process
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }
+  
+  /// @brief the name of the goal out recipe
+  inline void out_recipe(std::string s) { out_recipe_ = s; }
+  inline std::string out_recipe() const { return out_recipe_; }
   
   /// @brief the maximum amount in processing at a single time
   inline void capacity(double c) { capacity_ = c; }
@@ -237,6 +244,10 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @brief moves everything from reserves_ to processing_
   /// and, for each object, adds a start_time to the list of start times
   void BeginProcessing_();
+
+  /// @brief takes action appropriate for the tick on the last timestep
+  /// @TODO check that this does the right stuff.
+  void EndLife_();
   
   /// @brief calculates the material object that will reach the goal
   cyclus::Material::Ptr GoalDiff_();

@@ -218,10 +218,10 @@ void FCOFuelFab::Tick(int time) {
   PrintStatus("at the beginning of the tick ");
                                     
   if (context()->time() == FacLifetime()) {
-    EndLife();
+    EndLife_();
   } else {
     switch (phase()) {
-      case PROCESSING:
+      case PROCESS:
         break; // process on the tock.
       case WAITING:
         if (ProcessingCount() > 0) {
@@ -236,7 +236,7 @@ void FCOFuelFab::Tick(int time) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFab::EndLife(){
+void FCOFuelFab::EndLife_(){
     int nprocessing = ProcessingCount();
     LOG(cyclus::LEV_DEBUG1, "FCOFF") << "lifetime reached, dumping:"
                                       << nprocessing << " commods.";
@@ -252,8 +252,12 @@ void FCOFuelFab::Tock(int time) {
   
   BeginProcessing_(); // place reserves into processing
   int ready = context()->time() - process_time();
-  while (processing_[ready].count(commod) > 0) {
+
+  std::vector<std::string>::const_iterator it;
+  for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
+    while (processing_[ready].count((*it)) > 0) {
     Convert_(); // place processing into stocks
+    }
   }
 
   PrintStatus("at the end of the tock ");
@@ -286,7 +290,7 @@ double FCOFuelFab::ReservesQty_(){
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   double amt = 0;
   for (it = reserves_.begin(); it != reserves_.end(); it++){
-    amt += it.second().quantity();
+    amt += it->second.quantity();
   }
   return amt;
 }
@@ -425,7 +429,7 @@ void FCOFuelFab::BeginProcessing_() {
   std::vector<std::string>::const_iterator it;
   try {
     for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
-      processing_[(*it)][context()->time()].Push(reserves_[(*it)].Pop());
+      processing_[context()->time()][(*it)].Push(reserves_[(*it)].Pop());
   } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;

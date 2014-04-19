@@ -260,12 +260,14 @@ class FCOFuelFab : public cyclus::FacilityModel,
   
   /// @brief adds phase names to phase_names_ map
   void SetUpPhaseNames_();
+
+  /// @brief for materials that are now ready, determines the time received 
+  int Ready_();
   
   static std::map<Phase, std::string> phase_names_;
   int process_time_;
   double capacity_;
   Phase phase_;
-  std::set<std::string>;
 
   /// @brief the name of the goal recipe
   std::string out_recipe_;

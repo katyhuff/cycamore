@@ -251,11 +251,10 @@ void FCOFuelFab::Tock(int time) {
   PrintStatus("at the beginning of the tock ");
   
   BeginProcessing_(); // place reserves into processing
-  int ready = context()->time() - process_time();
 
   std::vector<std::string>::const_iterator it;
   for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
-    while (processing_[ready].count((*it)) > 0) {
+    while (processing_[Ready_()].count((*it)) > 0) {
     Convert_(); // place processing into stocks
     }
   }
@@ -386,8 +385,8 @@ void FCOFuelFab::GetMatlTrades(
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int FCOFuelFab::ProcessingCount() {
   int count = 0;
-  std::map<int, cyclus::ResourceBuff>::const_iterator it;
-  for (it = processing_.begin(); it != processing_.end(); ++it) {
+  std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
+  for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
     count += it->second.count();
   }
   return count;
@@ -471,17 +470,20 @@ void FCOFuelFab::FabFuel_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int Ready_(){
+  int ready = context()->time()-process_time();  
+  return ready;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::Convert_() {
   using cyclus::Material;
   using cyclus::ResCast;
 
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " removed"
                                     <<  " a resource from processing.";
-
-  int ready = context()->time()-process_time();  
-
   try {
-    Material::Ptr mat = ResCast<Material>(processing_[ready].Pop());
+    Material::Ptr mat = ResCast<Material>(processing_[Ready_()].Pop());
     std::string incommod = crctx_.commod(mat);
     assert(incommod != "");
     std::string outcommod = crctx_.out_commod(incommod);

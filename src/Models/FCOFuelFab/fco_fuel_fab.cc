@@ -451,8 +451,9 @@ cyclus::CompMap FCOFuelFab::GoalComp_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Composition::Ptr FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
-  cyclus::Composition::Ptr remaining_need = cyclus::compmath::Sub(GoalComp_(), current->comp());
+cyclus::CompMap FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
+  cyclus::CompMap remaining_need = cyclus::compmath::Sub(GoalComp_(), 
+      current->comp()->atom());
   return remaining_need;
 }
 

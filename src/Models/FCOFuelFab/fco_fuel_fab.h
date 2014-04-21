@@ -253,7 +253,7 @@ class FCOFuelFab : public cyclus::FacilityModel,
   cyclus::CompMap GoalComp_();
 
   /// @brief calculates the difference between current and the goal composition
-  cyclus::Composition::Ptr RemainingNeed_(cyclus::Material::Ptr current);
+  cyclus::CompMap RemainingNeed_(cyclus::Material::Ptr current);
   
   /// @brief sorts through the processing buffer to meet the need 
   /// @param iso the isotope which is needed

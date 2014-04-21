@@ -460,21 +460,21 @@ cyclus::CompMap FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, 
     cyclus::Material::Ptr current){
+  using cyclus::Material;
+  using cyclus::ResCast;
+
   double remaining_need = RemainingNeed_(current)[iso]; 
-  if (remaining_need >= sourcebuff->quantity()) {
-    manifest = sourcebuff->PopQty(remaining_need);
-    while(manifest->count() > 0){
-      current->Absorb(manifest->Pop());
+  if (remaining_need >= sourcebuff.quantity()) {
+    std::vector<Material::Ptr> manifest = ResCast<Material>(sourcebuff.PopQty(remaining_need));
+    std::vector<Material::Ptr>::const_iterator mat;
+    for(mat = manifest.begin(); mat != manifest.end(); ++mat){
+      current->Absorb(*mat);
     }
-  } else if (remaining_need > sourcebuff->quantity()){
-  } else if (remaining_
-  while(remaining_need > 0){
-    cyclus::Material::Ptr source = sourcebuff->Pop();
-    remaining_need = MeetNeed_(iso, source, current);
-  }
-  cyclus::Composition::Ptr need = GoalComp_()[iso] - current->comp()[iso];
-  current->Absorb(source->Extract(need.quantity(), need.comp()));
-  cyclus::Composition::Ptr remaining_need = RemainingNeed_(current);
+    remaining_need =0;
+  } else if (remaining_need < sourcebuff.quantity()){
+    while(sourcebuff.quantity() > 0){
+      Material::Ptr source = ResCast<Material>(sourcebuff.Pop());
+      remaining_need = MeetNeed_(iso, source, current);
   }
   return remaining_need; 
 }

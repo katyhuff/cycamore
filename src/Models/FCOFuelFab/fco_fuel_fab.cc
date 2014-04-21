@@ -426,26 +426,29 @@ void FCOFuelFab::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " added"
                                     <<  " a resource to processing.";
   std::vector<std::string>::const_iterator it;
-  try {
-    for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
+  for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
+    try {
       processing_[context()->time()][(*it)].Push(reserves_[(*it)].Pop());
-  } catch(cyclus::Error& e) {
-      e.msg(Model::InformErrorMsg(e.msg()));
-      throw e;
+    } catch(cyclus::Error& e) {
+        e.msg(Model::InformErrorMsg(e.msg()));
+        throw e;
+    }
   }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Material::Ptr FCOFuelFab::GoalDiff_(){
-  cyclus::Material::Ptr to_ret = CreateUntracked( 
-      context()->GetRecipe(out_recipe_) -
-      processing_[context()->time()].Pop().comp());
+cyclus::CompMap::Ptr FCOFuelFab::GoalComp_(){
+  cyclus::Composition::Ptr to_ret = context()->GetRecipe(out_recipe_);
   return to_ret;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::MeetNeed(int iso, cyclus::Material add_mat){
-  if add_mat.comp(iso) < GoalDiff_.comp(iso){
+
+  cyclus::Material::Ptr avail = processing_[Ready_()].Pop();
+  cyclus::CompMap diff = cyclus::compmath::Sub(GoalComp_(), avail.comp());
+
+  if add_mat.comp(iso) < GoalDiff_(iso){
     processing_[context()->time()].front().Absorb(add_mat);
   } else if add_mat.comp(iso) > GoalDiff_().comp(iso){
     part = add_mat.subtract(GoalDiff_().comp(iso));

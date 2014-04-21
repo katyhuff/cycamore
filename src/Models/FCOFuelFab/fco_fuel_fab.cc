@@ -461,9 +461,17 @@ cyclus::CompMap FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
 cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, 
     cyclus::Material::Ptr current){
   double remaining_need = RemainingNeed_(current)[iso]; 
-  while (remaining_need > 0) {
-    for source in sourcebuff{
-      remaining_need = MeetNeed_(iso, source, current); 
+  if (remaining_need >= sourcebuff->quantity()) {
+    manifest = sourcebuff->PopQty(remaining_need);
+    while(manifest->count() > 0){
+      current->Absorb(manifest->Pop());
+    }
+  } else if (remaining_need > sourcebuff->quantity()){
+  } else if (remaining_
+  while(remaining_need > 0){
+    cyclus::Material::Ptr source = sourcebuff->Pop();
+    remaining_need = MeetNeed_(iso, source, current);
+  }
   cyclus::Composition::Ptr need = GoalComp_()[iso] - current->comp()[iso];
   current->Absorb(source->Extract(need.quantity(), need.comp()));
   cyclus::Composition::Ptr remaining_need = RemainingNeed_(current);

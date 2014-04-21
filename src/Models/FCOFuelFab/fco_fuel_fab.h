@@ -253,7 +253,18 @@ class FCOFuelFab : public cyclus::FacilityModel,
   cyclus::Composition::Ptr GoalComp_();
   
   /// @brief sorts through the processing buffer to meet the need 
-  void MeetNeed_();
+  /// @param iso the isotope which is needed
+  /// @param sourcebuff a resource buffer holding material sources of the iso
+  /// @param current the current material object having its need met
+  /// @return the remaining need, a composition pointer
+  cyclus::Composition::Ptr MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, cyclus::Material::Ptr current);
+  
+  /// @brief meets the need using a specific material 
+  /// @param iso the isotope which is needed
+  /// @param source a material source of that isotope
+  /// @param current the current material object having its need met
+  /// @return the remaining need, a composition pointer
+  cyclus::Composition::Ptr MeetNeed_(int iso, cyclus::Material::Ptr source, cyclus::Material::Ptr current);
   
   /// @brief construct a request portfolio for an order of a given size
   cyclus::RequestPortfolio<cyclus::Material>::Ptr GetOrder_(double size);

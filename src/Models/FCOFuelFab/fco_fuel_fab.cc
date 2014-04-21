@@ -443,10 +443,10 @@ cyclus::Composition::Ptr FCOFuelFab::GoalComp_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff 
-    sourcebuff, cyclus::Material::Ptr current){
-  cyclus::Composition::Ptr need = GoalComp_(iso) - current.comp(iso);
-  current.Absorb(sourcebuff.Extract(need));
+cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr source, 
+    cyclus::Material::Ptr current){
+  cyclus::Composition::Ptr need = GoalComp_()[iso] - current->comp()[iso];
+  current->Absorb(source->Extract(need.quantity(), need.comp()));
   cyclus::Composition::Ptr remaining_need = cyclus::compmath::Sub(GoalComp_(), current.comp());
   return remaining_need; 
 }

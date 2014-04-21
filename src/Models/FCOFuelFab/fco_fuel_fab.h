@@ -249,8 +249,11 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @TODO check that this does the right stuff.
   void EndLife_();
   
-  /// @brief calculates the material object that will reach the goal
-  cyclus::Material::Ptr GoalDiff_();
+  /// @brief calculates goal material composition
+  cyclus::Composition::Ptr GoalComp_();
+  
+  /// @brief sorts through the processing buffer to meet the need 
+  void MeetNeed_();
   
   /// @brief construct a request portfolio for an order of a given size
   cyclus::RequestPortfolio<cyclus::Material>::Ptr GetOrder_(double size);

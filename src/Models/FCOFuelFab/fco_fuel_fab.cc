@@ -437,39 +437,38 @@ void FCOFuelFab::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::CompMap::Ptr FCOFuelFab::GoalComp_(){
+cyclus::Composition::Ptr FCOFuelFab::GoalComp_(){
   cyclus::Composition::Ptr to_ret = context()->GetRecipe(out_recipe_);
   return to_ret;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFab::MeetNeed(int iso, cyclus::Material add_mat){
-
-  cyclus::Material::Ptr avail = processing_[Ready_()].Pop();
-  cyclus::CompMap diff = cyclus::compmath::Sub(GoalComp_(), avail.comp());
-
-  if add_mat.comp(iso) < GoalDiff_(iso){
-    processing_[context()->time()].front().Absorb(add_mat);
-  } else if add_mat.comp(iso) > GoalDiff_().comp(iso){
-    part = add_mat.subtract(GoalDiff_().comp(iso));
-    processing_[context()->time()].front().Absorb(part);
-  } else if add_mat.comp(iso) == need.comp(iso){
-    processing_[context()->time()].front().Absorb(add_mat);
-  }
+cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff 
+    sourcebuff, cyclus::Material::Ptr current){
+  cyclus::Composition::Ptr need = GoalComp_(iso) - current.comp(iso);
+  current.Absorb(sourcebuff.Extract(need));
+  cyclus::Composition::Ptr remaining_need = cyclus::compmath::Sub(GoalComp_(), current.comp());
+  return remaining_need; 
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
 
-  for iso in prefs.keys(){
-    while(GoalDiff_(to_ret).comp(iso) > 0){
-      for(it=prefs[iso].begin(); it=prefs[iso].end(), ++it){
-        for mat in avail_mats[pref]{
-          MeetNeed(iso, mat);
+  while ProcessingQty_() > GoalComp_.qty {
+    cyclus::Material::Ptr current = Material();
+    for (pref = prefs.begin(); pref != prefs.end(); ++pref){
+      int iso = pref.first;
+      std::vector< std::string > sources = pref.second;
+      cyclus::Composition Ptr remaining_need = cyclus::Composition::Composition();
+      while (remaining_need > 0){
+        for (source = sources.begin(); source != sources.end(); ++source){
+          cyclus::ResourceBuffer sourcebuff = processing_[Ready()][source];
+          remaining_need = MeetNeed_(iso, sourcebuff, current);
         }
       }
     }
   }
+
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

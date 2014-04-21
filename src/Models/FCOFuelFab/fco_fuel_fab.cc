@@ -5,8 +5,9 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include "cyc_limits.h"
+#include "comp_math.h"
 #include "context.h"
+#include "cyc_limits.h"
 #include "error.h"
 #include "logger.h"
 
@@ -221,6 +222,13 @@ void FCOFuelFab::Tick(int time) {
     EndLife_();
   } else {
     switch (phase()) {
+      case INITIAL:
+        if (ProcessingCount() > 0) {
+          phase(PROCESS);
+        } else { 
+          phase(WAITING);
+        }
+        break;
       case PROCESS:
         break; // process on the tock.
       case WAITING:
@@ -437,24 +445,43 @@ void FCOFuelFab::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Composition::Ptr FCOFuelFab::GoalComp_(){
-  cyclus::Composition::Ptr to_ret = context()->GetRecipe(out_recipe_);
+cyclus::CompMap FCOFuelFab::GoalComp_(){
+  cyclus::CompMap to_ret = (context()->GetRecipe(out_recipe_))->atom();
   return to_ret;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+cyclus::Composition::Ptr FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
+  cyclus::Composition::Ptr remaining_need = cyclus::compmath::Sub(GoalComp_(), current->comp());
+  return remaining_need;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, 
+    cyclus::Material::Ptr current){
+  double remaining_need = RemainingNeed_(current)[iso]; 
+  while (remaining_need > 0) {
+    for source in sourcebuff{
+      remaining_need = MeetNeed_(iso, source, current); 
+  cyclus::Composition::Ptr need = GoalComp_()[iso] - current->comp()[iso];
+  current->Absorb(source->Extract(need.quantity(), need.comp()));
+  cyclus::Composition::Ptr remaining_need = RemainingNeed_(current);
+  }
+  return remaining_need; 
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr source, 
     cyclus::Material::Ptr current){
-  cyclus::Composition::Ptr need = GoalComp_()[iso] - current->comp()[iso];
+  cyclus::Composition::Ptr need = RemainingNeed_(current)[iso];
   current->Absorb(source->Extract(need.quantity(), need.comp()));
-  cyclus::Composition::Ptr remaining_need = cyclus::compmath::Sub(GoalComp_(), current.comp());
-  return remaining_need; 
+  return RemainingNeed_(current); 
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
 
-  while ProcessingQty_() > GoalComp_.qty {
+  while ProcessingQty_() > GoalComp_().qty {
     cyclus::Material::Ptr current = Material();
     for (pref = prefs.begin(); pref != prefs.end(); ++pref){
       int iso = pref.first;

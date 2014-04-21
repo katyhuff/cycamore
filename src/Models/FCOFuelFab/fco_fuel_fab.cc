@@ -458,7 +458,7 @@ cyclus::CompMap FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, 
+double FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, 
     cyclus::Material::Ptr current){
   using cyclus::Material;
   using cyclus::ResCast;
@@ -475,22 +475,22 @@ cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sou
     while(sourcebuff.quantity() > 0){
       Material::Ptr source = ResCast<Material>(sourcebuff.Pop());
       remaining_need = MeetNeed_(iso, source, current);
+    }
   }
   return remaining_need; 
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Composition::Ptr FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr source, 
-    cyclus::Material::Ptr current){
-  cyclus::Composition::Ptr need = RemainingNeed_(current)[iso];
-  current->Absorb(source->Extract(need.quantity(), need.comp()));
-  return RemainingNeed_(current); 
+double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr 
+    source, cyclus::Material::Ptr current){
+  double need = RemainingNeed_(current)[iso];
+  current->Absorb(source->ExtractQty(need));
+  return RemainingNeed_(current)[iso]; 
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
-
-  while ProcessingQty_() > GoalComp_().qty {
+  while (ProcessingQty_() > GoalComp_().qty) {
     cyclus::Material::Ptr current = Material();
     for (pref = prefs.begin(); pref != prefs.end(); ++pref){
       int iso = pref.first;

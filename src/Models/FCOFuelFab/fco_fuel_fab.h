@@ -184,6 +184,9 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @return the total number of commods in processing
   int ProcessingCount_();
 
+  /// @return the total amt of commods in processing
+  int ProcessingQty_();
+
   /// @return the total quantity of commods in reserves
   double ReservesQty_();
 
@@ -289,7 +292,7 @@ class FCOFuelFab : public cyclus::FacilityModel,
   int process_time_;
   double capacity_;
   Phase phase_;
-  std::map< int, std::vector< cyclus::Commodity > > prefs_;
+  std::map< int, std::vector< std::string > > prefs_;
 
   /// @brief the name of the goal recipe
   std::string out_recipe_;

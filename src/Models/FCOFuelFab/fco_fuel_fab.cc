@@ -390,13 +390,13 @@ void FCOFuelFab::GetMatlTrades(
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int FCOFuelFab::ProcessingCount_() {
-  int count = 0;
+int FCOFuelFab::ProcessingQty_() {
+  double amt = 0;
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
-    count += it->second.count();
+    amt += it->second.quantity();
   }
-  return count;
+  return amt;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -489,13 +489,16 @@ double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
-  while (ProcessingCount_() > GoalComp_().quantity()) {
-    cyclus::Material::Ptr current = cyclus::Material();
-    for (pref = prefs.begin(); pref != prefs.end(); ++pref){
-      int iso = pref.first;
-      std::vector< std::string > sources = pref.second;
-      cyclus::Composition Ptr remaining_need = cyclus::Composition::Composition();
+  bool still_possible = 1;
+  while (still_possible) {
+    cyclus::Material::Ptr current;
+    std::map< int, std::vector<std::string> >::const_iterator pref;
+    for(pref = prefs_.begin(); pref != prefs_.end(); pref++){
+      int iso = (*pref).first;
+      std::vector< std::string > sources = (*pref).second;
+      cyclus::Composition::Ptr remaining_need;
       while (remaining_need > 0){
+        std::vector<std::string>::const_iterator source;
         for (source = sources.begin(); source != sources.end(); ++source){
           cyclus::ResourceBuffer sourcebuff = processing_[Ready()][source];
           remaining_need = MeetNeed_(iso, sourcebuff, current);

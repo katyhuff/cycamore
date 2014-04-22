@@ -500,7 +500,7 @@ void FCOFuelFab::FabFuel_(){
       while (remaining_need > 0){
         std::vector<std::string>::const_iterator source;
         for (source = sources.begin(); source != sources.end(); ++source){
-          cyclus::ResourceBuffer sourcebuff = processing_[Ready()][source];
+          cyclus::ResourceBuff sourcebuff = processing_[Ready()][source];
           remaining_need = MeetNeed_(iso, sourcebuff, current);
         }
       }

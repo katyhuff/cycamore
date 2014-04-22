@@ -510,7 +510,7 @@ void FCOFuelFab::FabFuel_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int Ready_(){
+int FCOFuelFab::Ready_(){
   int ready = context()->time()-process_time();  
   return ready;
 }

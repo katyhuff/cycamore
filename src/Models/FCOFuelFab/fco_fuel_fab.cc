@@ -137,10 +137,9 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
     QueryEngine* preflist = qe->QueryElement("preflist", i);
     int prefiso = lexical_cast<int>(preflist->GetElementContent("prefiso"));
     int ncommods = preflist->NElementsMatchingQuery("sourcecommod");
-    std::vector< std::pair<int,  Commodity> > prefs;
     for (int j = 0; j < ncommods; j++){
-      std::string commod = preflist->GetElementContent("sourcecomod",j);
-      prefs.push_back(make_pair(prefiso, commod)); //TODO check that this is right
+      std::string commod = preflist->GetElementContent("sourcecommod",j);
+      prefs_[prefiso].push_back(commod); //TODO check that this is right
     }
   }
 
@@ -223,7 +222,7 @@ void FCOFuelFab::Tick(int time) {
   } else {
     switch (phase()) {
       case INITIAL:
-        if (ProcessingCount() > 0) {
+        if (ProcessingCount_() > 0) {
           phase(PROCESS);
         } else { 
           phase(WAITING);
@@ -232,7 +231,7 @@ void FCOFuelFab::Tick(int time) {
       case PROCESS:
         break; // process on the tock.
       case WAITING:
-        if (ProcessingCount() > 0) {
+        if (ProcessingCount_() > 0) {
           phase(PROCESS);
         } 
         break;
@@ -245,7 +244,7 @@ void FCOFuelFab::Tick(int time) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::EndLife_(){
-    int nprocessing = ProcessingCount();
+    int nprocessing = ProcessingCount_();
     LOG(cyclus::LEV_DEBUG1, "FCOFF") << "lifetime reached, dumping:"
                                       << nprocessing << " commods.";
     for (int i = 0; i < nprocessing; i++) {
@@ -361,7 +360,7 @@ void FCOFuelFab::PrintStatus(std::string when) {
                                     << " at " << when << " are:";
   LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    Phase: " << phase_names_[phase_]; 
   LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NReserves: " << ReservesQty_();
-  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NProcessing: " << ProcessingCount();
+  LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NProcessing: " << ProcessingCount_();
   LOG(cyclus::LEV_DEBUG4, "FCOFF") << "    NStocks: " << StocksCount();  
 
 }
@@ -391,7 +390,7 @@ void FCOFuelFab::GetMatlTrades(
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int FCOFuelFab::ProcessingCount() {
+int FCOFuelFab::ProcessingCount_() {
   int count = 0;
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
@@ -490,8 +489,8 @@ double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
-  while (ProcessingQty_() > GoalComp_().qty) {
-    cyclus::Material::Ptr current = Material();
+  while (ProcessingCount_() > GoalComp_().quantity()) {
+    cyclus::Material::Ptr current = cyclus::Material();
     for (pref = prefs.begin(); pref != prefs.end(); ++pref){
       int iso = pref.first;
       std::vector< std::string > sources = pref.second;

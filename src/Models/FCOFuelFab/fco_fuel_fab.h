@@ -201,6 +201,10 @@ class FCOFuelFab : public cyclus::FacilityModel,
   inline void out_recipe(std::string s) { out_recipe_ = s; }
   inline std::string out_recipe() const { return out_recipe_; }
   
+  /// @brief the name of the goal out commod
+  inline void out_commod(std::string s) { out_commod_ = s; }
+  inline std::string out_commod() const { return out_commod_; }
+  
   /// @brief the maximum amount in processing at a single time
   inline void capacity(double c) { capacity_ = c; }
   inline int capacity() const { return capacity_; }
@@ -216,9 +220,6 @@ class FCOFuelFab : public cyclus::FacilityModel,
   inline Phase phase() const { return phase_; }
 
  protected:
-  /// @brief moves commodities from processing_ to stocks_
-  virtual void Convert_();
-
   /// @brief gets bids for a commodity from a buffer
   cyclus::BidPortfolio<cyclus::Material>::Ptr GetBids_(
       const cyclus::CommodMap<cyclus::Material>::type& commod_requests,
@@ -296,6 +297,10 @@ class FCOFuelFab : public cyclus::FacilityModel,
 
   /// @brief the name of the goal recipe
   std::string out_recipe_;
+  /// @brief the name of the goal recipe
+  std::string out_commod_;
+
+  /// @brief the commodity recipe context keeping track of the commods/recipes
   cyclus::CommodityRecipeContext crctx_;
   
   /// @brief a map from commods to cyclus::ResourceBuff for resources before 

@@ -121,6 +121,7 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   std::string out_c = outpair->GetElementContent("outcommodity");
   std::string out_r = outpair->GetElementContent("outrecipe");
   out_recipe_ = out_r;
+  out_commod_ = out_c;
   
   // in/out pair
   int npairs = qe->NElementsMatchingQuery("inpair");
@@ -178,6 +179,7 @@ void FCOFuelFab::InitFrom(FCOFuelFab* m) {
   // in/out commodity & resource context
   crctx_ = m->crctx_;
   out_recipe(m->out_recipe());
+  out_commod(m->out_commod());
   
   // facility params
   process_time(m->process_time());
@@ -248,7 +250,7 @@ void FCOFuelFab::EndLife_(){
     LOG(cyclus::LEV_DEBUG1, "FCOFF") << "lifetime reached, dumping:"
                                       << nprocessing << " commods.";
     for (int i = 0; i < nprocessing; i++) {
-      Convert_(); // unload
+      FabFuel_(); // unload
     }
 }
 
@@ -262,7 +264,7 @@ void FCOFuelFab::Tock(int time) {
   std::vector<std::string>::const_iterator it;
   for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
     while (processing_[Ready_()].count((*it)) > 0) {
-    Convert_(); // place processing into stocks
+      FabFuel_(); 
     }
   }
 
@@ -445,7 +447,7 @@ void FCOFuelFab::BeginProcessing_() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::CompMap FCOFuelFab::GoalComp_(){
-  cyclus::CompMap to_ret = (context()->GetRecipe(out_recipe_))->atom();
+  cyclus::CompMap to_ret = (context()->GetRecipe(out_recipe()))->atom();
   return to_ret;
 }
 
@@ -505,7 +507,9 @@ void FCOFuelFab::FabFuel_(){
         }
       }
     }
+    stocks_[out_commod()].Push(current);
   }
+  LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
 
 }
 
@@ -513,30 +517,6 @@ void FCOFuelFab::FabFuel_(){
 int FCOFuelFab::Ready_(){
   int ready = context()->time()-process_time();  
   return ready;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFab::Convert_() {
-  using cyclus::Material;
-  using cyclus::ResCast;
-
-  LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " removed"
-                                    <<  " a resource from processing.";
-  try {
-    Material::Ptr mat = ResCast<Material>(processing_[Ready_()].Pop());
-    std::string incommod = crctx_.commod(mat);
-    assert(incommod != "");
-    std::string outcommod = crctx_.out_commod(incommod);
-    assert(outcommod != "");
-    std::string outrecipe = crctx_.out_recipe(crctx_.in_recipe(incommod));
-    assert(outrecipe != "");
-    mat->Transmute(context()->GetRecipe(outrecipe));
-    crctx_.UpdateRsrc(outcommod, mat);
-    stocks_[outcommod].Push(mat);
-  } catch(cyclus::Error& e) {
-      e.msg(Model::InformErrorMsg(e.msg()));
-      throw e;
-  }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -31,17 +31,15 @@ void FCOFuelFabTest::InitParameters() {
   in_c1 = "in_c1";
   in_c2 = "in_c2";
   out_c1 = "out_c1";
-  out_c2 = "out_c2";
   in_r1 = "in_r1";
   in_r2 = "in_r2";
   out_r1 = "out_r1";
-  out_r2 = "out_r2";
   crctx.AddInCommod(in_c1, in_r1, out_c1, out_r1);
-  crctx.AddInCommod(in_c2, in_r2, out_c2, out_r2);
+  crctx.AddInCommod(in_c2, in_r2, out_c1, out_r1);
   
   process_time = 10;
   
-  commodity = "power";
+  commodity = "swu";
   capacity = 200;
   cost = capacity;
   
@@ -72,9 +70,8 @@ void FCOFuelFabTest::SetUpSourceFacility() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFabTest::TestBuffs(int nreserves, int nprocessing, int nstocks) {
-  EXPECT_EQ(nreserves, src_facility->reserves_.count());
-  EXPECT_EQ(nprocessing, src_facility->ProcessingCount());
-  EXPECT_EQ(nstocks, src_facility->stocks_[out_c1].count());
+  EXPECT_EQ(nprocessing, src_facility->ProcessingCount_());
+  EXPECT_EQ(nstocks, src_facility->StocksCount());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -83,25 +80,25 @@ void FCOFuelFabTest::TestReserveBatches(cyclus::Material::Ptr mat,
                                           int n,
                                           double qty) {
   src_facility->AddCommods_(commod, mat);
-  EXPECT_EQ(n, src_facility->reserves_.count());
+  EXPECT_EQ(n, src_facility->reserves_[commod].count());
   
   cyclus::Material::Ptr back = cyclus::ResCast<cyclus::Material>(
-      src_facility->reserves_.Pop(cyclus::ResourceBuff::BACK));
+      src_facility->reserves_[commod].Pop(cyclus::ResourceBuff::BACK));
   EXPECT_EQ(commod, src_facility->crctx_.commod(back));
-  src_facility->reserves_.Push(back);
+  src_facility->reserves_[commod].Push(back);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFabTest::TestBatchIn(int n_processing, int n_reserves) {
+void FCOFuelFabTest::TestBatchIn(int n_processing, int n_reserves, std::string commod) {
   src_facility->BeginProcessing_();
-  EXPECT_EQ(n_processing, src_facility->ProcessingCount());
-  EXPECT_EQ(n_reserves, src_facility->reserves_.count());
+  EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
+  EXPECT_EQ(n_reserves, src_facility->reserves_[commod].count());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFabTest::TestBatchOut(int n_processing, int n_stocks) {
-  src_facility->Convert_();
-  EXPECT_EQ(n_processing, src_facility->ProcessingCount());
+  src_facility->FabFuel_();
+  EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_stocks, src_facility->stocks_[out_c1].count());
 }
 
@@ -109,7 +106,7 @@ void FCOFuelFabTest::TestBatchOut(int n_processing, int n_stocks) {
 void FCOFuelFabTest::TestInitState(FCOFuelFab* fac) {
   EXPECT_EQ(crctx, fac->crctx());
   EXPECT_EQ(process_time, fac->process_time());
-  EXPECT_EQ(0, fac->ProcessingCount());
+  EXPECT_EQ(0, fac->ProcessingCount_());
   EXPECT_EQ(FCOFuelFab::INITIAL, fac->phase());
 
   cyclus::Commodity commod(commodity);
@@ -214,15 +211,15 @@ TEST_F(FCOFuelFabTest, BatchInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  EXPECT_THROW(TestBatchIn(1, 0), cyclus::Error);
+  EXPECT_THROW(TestBatchIn(1, 0, in_c1), cyclus::Error);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
   TestReserveBatches(mat, in_c1, 1, 0);
-  TestBatchIn(1, 0);
+  TestBatchIn(1, 0, in_c1);
 
   mat = Material::CreateBlank(mat_size * 2);
   TestReserveBatches(mat, in_c1, 2, 0);
-  TestBatchIn(2, 1);
+  TestBatchIn(2, 1, in_c1);
   
   TestBatchOut(1, 1);
   TestBatchOut(0, 2);

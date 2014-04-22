@@ -496,11 +496,11 @@ void FCOFuelFab::FabFuel_(){
     for(pref = prefs_.begin(); pref != prefs_.end(); pref++){
       int iso = (*pref).first;
       std::vector< std::string > sources = (*pref).second;
-      cyclus::Composition::Ptr remaining_need;
+      double remaining_need = RemainingNeed_(current)[iso];
       while (remaining_need > 0){
         std::vector<std::string>::const_iterator source;
         for (source = sources.begin(); source != sources.end(); ++source){
-          cyclus::ResourceBuff sourcebuff = processing_[Ready_()][source];
+          cyclus::ResourceBuff sourcebuff = processing_[Ready_()][(*source)];
           remaining_need = MeetNeed_(iso, sourcebuff, current);
         }
       }

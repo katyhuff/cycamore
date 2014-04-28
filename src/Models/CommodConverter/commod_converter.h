@@ -211,6 +211,14 @@ class CommodConverter : public cyclus::FacilityModel,
   void phase(Phase p);
   inline Phase phase() const { return phase_; }
 
+  /// @brief this facility's preference for input commodities
+  inline void commod_prefs(const std::map<std::string, double>& prefs) {
+    commod_prefs_ = prefs;
+  }
+  inline const std::map<std::string, double>& commod_prefs() const {
+    return commod_prefs_;
+  }
+
  protected:
   /// @brief moves commodities from processing_ to stocks_
   virtual void Convert_();
@@ -253,6 +261,9 @@ class CommodConverter : public cyclus::FacilityModel,
   
   /// @brief adds phase names to phase_names_ map
   void SetUpPhaseNames_();
+
+  /// @brief preferences for each input commodity
+  std::map<std::string, double> commod_prefs_;
   
   static std::map<Phase, std::string> phase_names_;
   int process_time_;

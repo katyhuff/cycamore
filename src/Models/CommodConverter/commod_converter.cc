@@ -75,7 +75,8 @@ std::string CommodConverter::schema() {
       "  </optional>                                 \n"
       "  </interleave>                               \n"
       "                                              \n"
-      "  <!-- Power Production  -->                  \n"
+      "  <!-- Commod Production  -->                 \n"
+      "  <oneOrMore>                                 \n"
       "  <element name=\"commodity_production\">     \n"
       "   <element name=\"commodity\">               \n"
       "     <data type=\"string\"/>                  \n"
@@ -86,7 +87,22 @@ std::string CommodConverter::schema() {
       "   <element name=\"cost\">                    \n"
       "     <data type=\"double\"/>                  \n"
       "   </element>                                 \n"
-      "  </element>                                  \n";
+      "  </element>                                  \n"
+      "  </oneOrMore>                                \n"
+      "                                              \n"
+      "  <!-- Trade Preferences  -->                 \n"
+      "  <optional>                                  \n"
+      "  <oneOrMore>                                 \n"
+      "  <element name=\"commod_pref\">              \n"
+      "   <element name=\"incommodity\">             \n"
+      "     <data type=\"string\"/>                  \n"
+      "   </element>                                 \n"
+      "   <element name=\"preference\">              \n"
+      "     <data type=\"double\"/>                  \n"
+      "   </element>                                 \n"
+      "  </element>                                  \n"
+      "  </oneOrMore>                                \n"
+      "  </optional>                                 \n";
 };
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,6 +146,19 @@ void CommodConverter::InitFrom(cyclus::QueryEngine* qe) {
   CommodityProducer::SetCapacity(commod, lexical_cast<double>(data));
   data = commodity->GetElementContent("cost");
   CommodityProducer::SetCost(commod, lexical_cast<double>(data));
+
+  // trade preferences
+  int nprefs = qe->NElementsMatchingQuery("commod_pref");
+  std::string c;
+  double pref;
+  if (nprefs > 0) {
+    for (int i = 0; i < nprefs; i++) {
+      QueryEngine* cp = qe->QueryElement("commod_pref", i);
+      c = cp->GetElementContent("incommodity");
+      pref = lexical_cast<double>(cp->GetElementContent("preference"));
+      commod_prefs_[c] = pref;
+    }
+  }
 
 }
 

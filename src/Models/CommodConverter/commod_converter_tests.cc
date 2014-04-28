@@ -41,7 +41,7 @@ void CommodConverterTest::InitParameters() {
   
   process_time = 10;
   
-  commodity = "power";
+  commodity = out_c1;
   capacity = 200;
   cost = capacity;
   
@@ -144,6 +144,16 @@ TEST_F(CommodConverterTest, XMLInit) {
      << "  </commodpair>"
      << "  <processtime>" << process_time << "</processtime>"
      << "  <capacity>" << capacity << "</capacity>"
+     << "  <commodity_production>"
+     << "    <commodity>" << out_c1 << "</commodity>"
+     << "    <capacity>" << capacity << "</capacity>"
+     << "    <cost>" << cost << "</cost>"
+     << "  </commodity_production>"
+     << "  <commodity_production>"
+     << "    <commodity>" << out_c2 << "</commodity>"
+     << "    <capacity>" << capacity << "</capacity>"
+     << "    <cost>" << cost << "</cost>"
+     << "  </commodity_production>"
      << "</UNSPECIFIED>"
      << "</model>"
      << "</start>";

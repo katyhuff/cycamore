@@ -48,7 +48,7 @@ void FCOFuelFabTest::InitParameters() {
   
   process_time = 10;
   
-  commodity = "swu";
+  commodity = out_c1;
   capacity = 200;
   cost = capacity;
   
@@ -167,6 +167,11 @@ TEST_F(FCOFuelFabTest, XMLInit) {
      << "  </preflist>"
      << "  <processtime>" << process_time << "</processtime>"
      << "  <capacity>" << capacity << "</capacity>"
+     << "  <commodity_production>"
+     << "    <commodity>" << out_c1 << "</commodity>"
+     << "    <capacity>" << capacity << "</capacity>"
+     << "    <cost>" << cost << "</cost>"
+     << "  </commodity_production>"
      << "</UNSPECIFIED>"
      << "</model>"
      << "</start>";

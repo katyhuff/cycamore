@@ -19,8 +19,9 @@ class FCOFuelFabTest : public ::testing::Test {
   FCOFuelFab* src_facility;
 
   // init params
-  std::string in_c1, in_c2, out_c1, out_c2;
-  std::string in_r1, in_r2, out_r1, out_r2;
+  std::string in_c1, in_c2, in_c3, in_c4, out_c1;
+  std::string in_r1, in_r2, in_r3, in_r4, out_r1;
+  int iso_1, iso_2;
   cyclus::CommodityRecipeContext crctx;
 
   int process_time;

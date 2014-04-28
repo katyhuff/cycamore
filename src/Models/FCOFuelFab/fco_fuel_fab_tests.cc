@@ -30,12 +30,21 @@ void FCOFuelFabTest::InitParameters() {
   // init params
   in_c1 = "in_c1";
   in_c2 = "in_c2";
+  in_c3 = "in_c3";
+  in_c4 = "in_c4";
   out_c1 = "out_c1";
   in_r1 = "in_r1";
   in_r2 = "in_r2";
+  in_r3 = "in_r3";
+  in_r4 = "in_r4";
   out_r1 = "out_r1";
   crctx.AddInCommod(in_c1, in_r1, out_c1, out_r1);
   crctx.AddInCommod(in_c2, in_r2, out_c1, out_r1);
+  crctx.AddInCommod(in_c3, in_r3, out_c1, out_r1);
+  crctx.AddInCommod(in_c4, in_r4, out_c1, out_r1);
+
+  iso_1 = 92235;
+  iso_2 = 94240;
   
   process_time = 10;
   
@@ -54,7 +63,6 @@ void FCOFuelFabTest::InitParameters() {
   v[94239] = 0.25;
   recipe = cyclus::Composition::CreateFromAtom(v);
   tc_.get()->AddRecipe(out_r1, recipe);
-  tc_.get()->AddRecipe(out_r2, recipe);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -127,19 +135,38 @@ TEST_F(FCOFuelFabTest, XMLInit) {
      << "<name>fooname</name>"
      << "<model>"
      << "<UNSPECIFIED>"
-     << "  <fuel>"
+     << "  <inpair>"
      << "    <incommodity>" << in_c1 << "</incommodity>"
      << "    <inrecipe>" << in_r1 << "</inrecipe>"
-     << "    <outcommodity>" << out_c1 << "</outcommodity>"
-     << "    <outrecipe>" << out_r1 << "</outrecipe>"
-     << "  </fuel>"
-     << "  <fuel>"
+     << "  </inpair>"
+     << "  <inpair>"
      << "    <incommodity>" << in_c2 << "</incommodity>"
      << "    <inrecipe>" << in_r2 << "</inrecipe>"
-     << "    <outcommodity>" << out_c2 << "</outcommodity>"
-     << "    <outrecipe>" << out_r2 << "</outrecipe>"
-     << "  </fuel>"
+     << "  </inpair>"
+     << "  <inpair>"
+     << "    <incommodity>" << in_c3 << "</incommodity>"
+     << "    <inrecipe>" << in_r3 << "</inrecipe>"
+     << "  </inpair>"
+     << "  <inpair>"
+     << "    <incommodity>" << in_c4 << "</incommodity>"
+     << "    <inrecipe>" << in_r4 << "</inrecipe>"
+     << "  </inpair>"
+     << "  <outpair>"
+     << "    <outcommodity>" << out_c1 << "</outcommodity>"
+     << "    <outrecipe>" << out_r1 << "</outrecipe>"
+     << "  </outpair>"
+     << "  <preflist>"
+     << "    <prefiso>" << iso_1 << "</prefiso>"
+     << "    <sourcecommod>" << in_c1 << "</sourcecommod>"
+     << "    <sourcecommod>" << in_c2 << "</sourcecommod>"
+     << "  </preflist>"
+     << "  <preflist>"
+     << "    <prefiso>" << iso_2 << "</prefiso>"
+     << "    <sourcecommod>" << in_c3 << "</sourcecommod>"
+     << "    <sourcecommod>" << in_c4 << "</sourcecommod>"
+     << "  </preflist>"
      << "  <processtime>" << process_time << "</processtime>"
+     << "  <capacity>" << capacity << "</capacity>"
      << "</UNSPECIFIED>"
      << "</model>"
      << "</start>";

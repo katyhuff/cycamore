@@ -41,23 +41,20 @@ class FCOFuelFabTest : public ::testing::Test {
   /// @brief tests the initial state of a facility
   void TestInitState(FCOFuelFab* fac);
 
-  /// @brief tests the number of batches in each buffer
-  void TestBuffs(int nreserves, int ncore, int nstorage);
-  
-  /// @brief tests the FCOFuelFab's reserves_, by calling AddBatches_(mat),
-  ///  and confirming that there are n items and the last item has 
-  ///  quantity qty
-  void TestReserveBatches(cyclus::Material::Ptr mat, std::string commod,
-                          int n, double qty);
+  /// @brief tests the initial state of a facility
+  /// mat is the material to add to the reserves.
+  /// mat is of commodity commod
+  /// n is the expected number of mats of that commod currently in reserves
+  void TestAddCommods(cyclus::Material::Ptr mat, std::string commod, int n);
 
-  /// @brief calls MoveBatchIn_ and tests that the number of objects in core_ is
-  /// n_core and the number of objects in reserves_ is n_reserves
+  /// @brief calls BeginProcessing and tests that the number of objects in core_ is
+  /// n_processing and the number of objects in reserves_ is n_reserves
   /// commod is the in commodity of interest
-  void TestBatchIn(int n_core, int n_reserves, std::string commod);
+  void TestBeginProcessing(int n_processing, int n_reserves, std::string commod);
       
-  /// @brief calls MoveBatchOut_ and tests that the number of objects in core_ is
-  /// n_core and the number of objects in storage_ is n_storage
-  void TestBatchOut(int n_core, int n_storage);
+  /// @brief calls _ and tests that the number of objects in processing_ is
+  /// n_processing and the number of objects in stocks_ is n_stocks
+  void TestFinishProcessing(int n_processing, int n_stocks);
 };
 
 } // namespace cycamore

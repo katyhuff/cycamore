@@ -77,34 +77,21 @@ void FCOFuelFabTest::SetUpSourceFacility() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFabTest::TestBuffs(int nreserves, int nprocessing, int nstocks) {
-  EXPECT_EQ(nprocessing, src_facility->ProcessingCount_());
-  EXPECT_EQ(nstocks, src_facility->StocksCount());
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFabTest::TestReserveBatches(cyclus::Material::Ptr mat,
-                                          std::string commod,
-                                          int n,
-                                          double qty) {
+void FCOFuelFabTest::TestAddCommods(cyclus::Material::Ptr mat, std::string 
+    commod, int n) {
   src_facility->AddCommods_(commod, mat);
   EXPECT_EQ(n, src_facility->reserves_[commod].count());
-  
-  cyclus::Material::Ptr back = cyclus::ResCast<cyclus::Material>(
-      src_facility->reserves_[commod].Pop(cyclus::ResourceBuff::BACK));
-  EXPECT_EQ(commod, src_facility->crctx_.commod(back));
-  src_facility->reserves_[commod].Push(back);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFabTest::TestBatchIn(int n_processing, int n_reserves, std::string commod) {
+void FCOFuelFabTest::TestBeginProcessing(int n_processing, int n_reserves, std::string commod) {
   src_facility->BeginProcessing_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_reserves, src_facility->reserves_[commod].count());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFabTest::TestBatchOut(int n_processing, int n_stocks) {
+void FCOFuelFabTest::TestFinishProcessing(int n_processing, int n_stocks) {
   src_facility->FabFuel_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_stocks, src_facility->stocks_[out_c1].count());
@@ -205,6 +192,7 @@ TEST_F(FCOFuelFabTest, Tick) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, Tock) {
   int time = 1;
+  src_facility->Tock(time);
   //EXPECT_NO_THROW(src_facility->Tock(time));
 }
 
@@ -215,48 +203,48 @@ TEST_F(FCOFuelFabTest, StartProcess) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(FCOFuelFabTest, AddBatches) {
+TEST_F(FCOFuelFabTest, AddCommods) {
   using cyclus::Material;
   double mat_size = 100; 
   Material::Ptr mat = Material::CreateBlank(mat_size);
-  // mat to add, commodity, nreserves, qty of spillover
-  TestReserveBatches(mat, in_c1, 1, 0);
+  // mat to add, commodity
+  TestAddCommods(mat, in_c1, 1);
   
   mat = Material::CreateBlank(mat_size - (1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 1, mat_size- (1 + cyclus::eps()));
+  TestAddCommods(mat, in_c1, 2);
   
   mat = Material::CreateBlank((1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 2, 0);
-
+  TestAddCommods(mat, in_c1, 3);
+  
   mat = Material::CreateBlank(mat_size + (1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 3, 1 + cyclus::eps());
+  TestAddCommods(mat, in_c1, 4);
   
   mat = Material::CreateBlank(mat_size - (1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 4, 0);
+  TestAddCommods(mat, in_c1, 5);
+
+  TestAddCommods(mat, in_c2, 1);
   
-  mat = Material::CreateBlank(1 + cyclus::eps());
-  TestReserveBatches(mat, in_c1, 4, 1 + cyclus::eps());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(FCOFuelFabTest, BatchInOut) {
+TEST_F(FCOFuelFabTest, CommodsInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  EXPECT_THROW(TestBatchIn(1, 0, in_c1), cyclus::Error);
+  EXPECT_THROW(TestBeginProcessing(1, 0, in_c1), cyclus::Error);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
-  TestReserveBatches(mat, in_c1, 1, 0);
-  TestBatchIn(1, 0, in_c1);
+  TestAddCommods(mat, in_c1, 1);
+  TestBeginProcessing(1, 0, in_c1);
 
   mat = Material::CreateBlank(mat_size * 2);
-  TestReserveBatches(mat, in_c1, 2, 0);
-  TestBatchIn(2, 1, in_c1);
+  TestAddCommods(mat, in_c1, 2);
+  TestBeginProcessing(2, 1, in_c1);
   
-  TestBatchOut(1, 1);
-  TestBatchOut(0, 2);
+  TestFinishProcessing(1, 1);
+  TestFinishProcessing(0, 2);
 
-  EXPECT_THROW(TestBatchOut(1, 0), cyclus::Error);
+  EXPECT_THROW(TestFinishProcessing(1, 0), cyclus::Error);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

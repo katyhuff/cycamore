@@ -115,7 +115,7 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
     crctx_.AddInCommod(in_c, in_r, out_c, out_r);
   }
 
-  // recipe building preferences
+  // isotopic source preferences
   int nlists = qe->NElementsMatchingQuery("preflist");
   for (int i = 0; i < nlists; i++) {
     QueryEngine* preflist = qe->QueryElement("preflist", i);
@@ -280,7 +280,7 @@ FCOFuelFab::GetMatlRequests() {
 double FCOFuelFab::ReservesQty_(){
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   double amt = 0;
-  for (it = reserves_.begin(); it != reserves_.end(); it++){
+  for (it = reserves_.begin(); it != reserves_.end(); ++it){
     amt += it->second.quantity();
   }
   return amt;
@@ -426,13 +426,15 @@ void FCOFuelFab::EmptyReserves_() {
 void FCOFuelFab::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " added"
                                     <<  " a resource to processing.";
-  std::vector<std::string>::const_iterator it;
-  for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
-    try {
-      processing_[context()->time()][(*it)].Push(reserves_[(*it)].Pop());
-    } catch(cyclus::Error& e) {
+  std::map<std::string, cyclus::ResourceBuff>::iterator it;
+  for (it = reserves_.begin(); it != reserves_.end(); ++it){
+    if (!(*it).second.empty()){
+      try {
+        processing_[context()->time()][(*it).first].Push((*it).second.Pop());
+      } catch(cyclus::Error& e) {
         e.msg(Model::InformErrorMsg(e.msg()));
         throw e;
+      }
     }
   }
 }
@@ -487,7 +489,7 @@ void FCOFuelFab::FabFuel_(){
   while (still_possible) {
     cyclus::Material::Ptr current;
     std::map< int, std::vector<std::string> >::const_iterator pref;
-    for(pref = prefs_.begin(); pref != prefs_.end(); pref++){
+    for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
       int iso = (*pref).first;
       std::vector< std::string > sources = (*pref).second;
       double remaining_need = RemainingNeed_(current)[iso];

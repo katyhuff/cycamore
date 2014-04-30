@@ -78,7 +78,7 @@ void CommodConverterTest::TestBuffs(int nreserves, int nprocessing, int nstocks)
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestReserveBatches(cyclus::Material::Ptr mat,
+void CommodConverterTest::TestAddCommod(cyclus::Material::Ptr mat,
                                           std::string commod,
                                           int n,
                                           double qty) {
@@ -92,14 +92,14 @@ void CommodConverterTest::TestReserveBatches(cyclus::Material::Ptr mat,
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestBatchIn(int n_processing, int n_reserves) {
+void CommodConverterTest::TestBeginProcessing(int n_processing, int n_reserves) {
   src_facility->BeginProcessing_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount());
   EXPECT_EQ(n_reserves, src_facility->reserves_.count());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestBatchOut(int n_processing, int n_stocks) {
+void CommodConverterTest::TestFinishProcessing(int n_processing, int n_stocks) {
   src_facility->Convert_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount());
   EXPECT_EQ(n_stocks, src_facility->stocks_[out_c1].count());
@@ -198,27 +198,27 @@ TEST_F(CommodConverterTest, StartProcess) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(CommodConverterTest, AddBatches) {
+TEST_F(CommodConverterTest, AddCommods) {
   using cyclus::Material;
   double mat_size = 100; 
   Material::Ptr mat = Material::CreateBlank(mat_size);
   // mat to add, commodity, nreserves, qty of spillover
-  TestReserveBatches(mat, in_c1, 1, 0);
+  TestAddCommod(mat, in_c1, 1, 0);
   
   mat = Material::CreateBlank(mat_size - (1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 1, mat_size- (1 + cyclus::eps()));
+  TestAddCommod(mat, in_c1, 2, mat_size- (1 + cyclus::eps()));
   
   mat = Material::CreateBlank((1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 2, 0);
+  TestAddCommod(mat, in_c1, 3, 0);
 
   mat = Material::CreateBlank(mat_size + (1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 3, 1 + cyclus::eps());
+  TestAddCommod(mat, in_c1, 4, 1 + cyclus::eps());
   
   mat = Material::CreateBlank(mat_size - (1 + cyclus::eps()));
-  TestReserveBatches(mat, in_c1, 4, 0);
+  TestAddCommod(mat, in_c1, 5, 0);
   
   mat = Material::CreateBlank(1 + cyclus::eps());
-  TestReserveBatches(mat, in_c1, 4, 1 + cyclus::eps());
+  TestAddCommod(mat, in_c1, 6, 1 + cyclus::eps());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -226,20 +226,20 @@ TEST_F(CommodConverterTest, BatchInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  EXPECT_THROW(TestBatchIn(1, 0), cyclus::Error);
+  EXPECT_THROW(TestBeginProcessing(1, 0), cyclus::Error);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
-  TestReserveBatches(mat, in_c1, 1, 0);
-  TestBatchIn(1, 0);
+  TestAddCommod(mat, in_c1, 1, 0);
+  TestBeginProcessing(1, 0);
 
   mat = Material::CreateBlank(mat_size * 2);
-  TestReserveBatches(mat, in_c1, 2, 0);
-  TestBatchIn(2, 1);
+  TestAddCommod(mat, in_c1, 2, 0);
+  TestBeginProcessing(2, 1);
   
-  TestBatchOut(1, 1);
-  TestBatchOut(0, 2);
+  TestFinishProcessing(1, 1);
+  TestFinishProcessing(0, 2);
 
-  EXPECT_THROW(TestBatchOut(1, 0), cyclus::Error);
+  EXPECT_THROW(TestFinishProcessing(1, 0), cyclus::Error);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

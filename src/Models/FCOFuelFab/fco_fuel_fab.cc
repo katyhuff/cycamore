@@ -277,6 +277,22 @@ FCOFuelFab::GetMatlRequests() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int FCOFuelFab::ReservesCount_(std::string commod){
+  int count = reserves_[commod].count();
+  return count;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int FCOFuelFab::ReservesCount_(){
+  std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
+  int count = 0;
+  for (it = reserves_.begin(); it != reserves_.end(); ++it){
+    count += ReservesCount_((*it).first);
+  }
+  return count;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 double FCOFuelFab::ReservesQty_(){
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   double amt = 0;

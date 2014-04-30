@@ -187,6 +187,12 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @return the total amt of commods in processing
   int ProcessingQty_();
 
+  /// @return the total quantity of all commods in reserves
+  int ReservesCount_();
+
+  /// @return the total quantity of a specific commod in reserves
+  int ReservesCount_(std::string commod);
+
   /// @return the total quantity of commods in reserves
   double ReservesQty_();
 

@@ -411,11 +411,14 @@ void CommodConverter::EmptyReserves_() {
 void CommodConverter::BeginProcessing_() {
   LOG(cyclus::LEV_DEBUG2, "ComCnv") << "CommodConverter " << name() << " added"
                                     <<  " a resource to processing.";
-  try {
-    processing_[context()->time()].Push(reserves_.Pop());
-  } catch(cyclus::Error& e) {
-      e.msg(Model::InformErrorMsg(e.msg()));
-      throw e;
+
+  if (processing_.count(context()->time()) > 0){
+    try {
+      processing_[context()->time()].Push(reserves_.Pop());
+    } catch(cyclus::Error& e) {
+        e.msg(Model::InformErrorMsg(e.msg()));
+        throw e;
+    }
   }
 }
 

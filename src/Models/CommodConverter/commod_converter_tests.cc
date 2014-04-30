@@ -187,7 +187,8 @@ TEST_F(CommodConverterTest, Tick) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(CommodConverterTest, Tock) {
   int time = 1;
-  EXPECT_NO_THROW(src_facility->Tock(time));
+  src_facility->Tock(time);
+  //EXPECT_NO_THROW(src_facility->Tock(time));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

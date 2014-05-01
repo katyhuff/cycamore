@@ -222,7 +222,7 @@ TEST_F(CommodConverterTest, AddCommods) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(CommodConverterTest, BatchInOut) {
+TEST_F(CommodConverterTest, CommodsInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 

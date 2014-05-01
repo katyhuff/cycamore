@@ -48,13 +48,13 @@ class CommodConverterTest : public ::testing::Test {
   void TestAddCommod(cyclus::Material::Ptr mat, std::string commod,
                           int n, double qty);
 
-  /// @brief calls Convert_ and tests that the number of objects in core_ is
-  /// n_core and the number of objects in reserves_ is n_reserves
-  void TestBeginProcessing(int n_core, int n_reserves);
+  /// @brief calls Convert_ and tests that the number of objects in processing_ is
+  /// n_processing and the number of objects in reserves_ is n_reserves
+  void TestBeginProcessing(int n_processing, int n_reserves);
       
   /// @brief calls Convert?_ and tests that the number of objects in core_ is
-  /// n_core and the number of objects in storage_ is n_storage
-  void TestFinishProcessing(int n_core, int n_storage);
+  /// n_processing and the number of objects in stocks_ is n_stocks
+  void TestFinishProcessing(int n_processing, int n_stocks);
 };
 
 } // namespace cycamore

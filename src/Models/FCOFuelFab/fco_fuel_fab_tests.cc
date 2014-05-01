@@ -231,15 +231,15 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  EXPECT_THROW(TestBeginProcessing(1, 0, in_c1), cyclus::Error);
+  TestBeginProcessing(0, 0, in_c1);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(1, 0, in_c1);
 
   mat = Material::CreateBlank(mat_size * 2);
-  TestAddCommods(mat, in_c1, 2);
-  TestBeginProcessing(2, 1, in_c1);
+  TestAddCommods(mat, in_c1, 1);
+  TestBeginProcessing(2, 0, in_c1);
   
   //TestFinishProcessing(1, 1);
   //TestFinishProcessing(0, 2);

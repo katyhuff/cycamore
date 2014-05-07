@@ -409,12 +409,24 @@ int FCOFuelFab::ProcessingCount_() {
   }
   return count;
 }
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int FCOFuelFab::StocksCount() {
   int count = 0;
   std::map<std::string, cyclus::ResourceBuff>::const_iterator it;
   for (it = stocks_.begin(); it != stocks_.end(); ++it) {
     count += it->second.count();
+  }
+  return count;
+}
+
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int FCOFuelFab::StocksCount(std::string commod) {
+  int count = 0;
+  std::map<std::string, cyclus::ResourceBuff>::iterator it = stocks_.find(commod);
+  if ( it!=stocks_.end() ) {
+    count = it->second.count();
   }
   return count;
 }

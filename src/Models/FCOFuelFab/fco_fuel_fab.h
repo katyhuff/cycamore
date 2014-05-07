@@ -199,6 +199,9 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @return the total number of commods in stocks
   int StocksCount();
 
+  /// @return the total number of commods of commodtype in stocks
+  int StocksCount(std::string commodtype);
+
   /// @brief the processing time required for a full process
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }

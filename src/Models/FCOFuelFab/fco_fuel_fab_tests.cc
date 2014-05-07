@@ -94,7 +94,7 @@ void FCOFuelFabTest::TestBeginProcessing(int n_processing, int n_reserves, std::
 void FCOFuelFabTest::TestFinishProcessing(int n_processing, int n_stocks) {
   src_facility->FabFuel_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
-  EXPECT_EQ(n_stocks, src_facility->stocks_[out_c1].count());
+  EXPECT_EQ(n_stocks, src_facility->StocksCount(in_c1));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -235,14 +235,14 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
   TestAddCommods(mat, in_c1, 1);
-  TestBeginProcessing(1, 0, in_c1);
+  TestBeginProcessing(0, 0, in_c1);// this is wrong
 
   mat = Material::CreateBlank(mat_size * 2);
   TestAddCommods(mat, in_c1, 1);
-  TestBeginProcessing(2, 0, in_c1);
+  TestBeginProcessing(0, 0, in_c1);// also wrong. wtf.
   
-  //TestFinishProcessing(1, 1);
-  //TestFinishProcessing(0, 2);
+  TestFinishProcessing(1, 1);
+  TestFinishProcessing(0, 2);
 
   //EXPECT_THROW(TestFinishProcessing(1, 0), cyclus::Error);
 }

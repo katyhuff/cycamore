@@ -39,7 +39,7 @@ void CommodConverterTest::InitParameters() {
   crctx.AddInCommod(in_c1, in_r1, out_c1, out_r1);
   crctx.AddInCommod(in_c2, in_r2, out_c2, out_r2);
   
-  process_time = 10;
+  process_time = 0.0;
   
   commodity = out_c1;
   capacity = 200;
@@ -103,7 +103,7 @@ void CommodConverterTest::TestBeginProcessing(int n_reserves, int n_processing, 
 void CommodConverterTest::TestFinishProcessing(int n_processing, int n_stocks) {
   src_facility->Convert_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount());
-  EXPECT_EQ(n_stocks, src_facility->stocks_[out_c1].count());
+  EXPECT_EQ(n_stocks, src_facility->StocksCount());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -189,7 +189,7 @@ TEST_F(CommodConverterTest, Tick) {
 TEST_F(CommodConverterTest, Tock) {
   int time = 1;
   src_facility->Tock(time);
-  //EXPECT_NO_THROW(src_facility->Tock(time));
+  EXPECT_NO_THROW(src_facility->Tock(time));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -240,7 +240,6 @@ TEST_F(CommodConverterTest, CommodsInOut) {
   TestFinishProcessing(1, 1);
   TestFinishProcessing(0, 2);
 
-  EXPECT_THROW(TestFinishProcessing(1, 0), cyclus::Error);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

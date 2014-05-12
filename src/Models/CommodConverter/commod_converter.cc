@@ -432,20 +432,22 @@ void CommodConverter::Convert_() {
 
   int ready = context()->time()-process_time();  
 
-  try {
-    Material::Ptr mat = ResCast<Material>(processing_[ready].Pop());
-    std::string incommod = crctx_.commod(mat);
-    assert(incommod != "");
-    std::string outcommod = crctx_.out_commod(incommod);
-    assert(outcommod != "");
-    std::string outrecipe = crctx_.out_recipe(crctx_.in_recipe(incommod));
-    assert(outrecipe != "");
-    mat->Transmute(context()->GetRecipe(outrecipe));
-    crctx_.UpdateRsrc(outcommod, mat);
-    stocks_[outcommod].Push(mat);
-  } catch(cyclus::Error& e) {
+  if ( processing_.find(ready)->second.count() > 0 ){
+    try {
+      Material::Ptr mat = ResCast<Material>(processing_.find(ready)->second.Pop());
+      std::string incommod = crctx_.commod(mat);
+      assert(incommod != "");
+      std::string outcommod = crctx_.out_commod(incommod);
+      assert(outcommod != "");
+      std::string outrecipe = crctx_.out_recipe(crctx_.in_recipe(incommod));
+      assert(outrecipe != "");
+      mat->Transmute(context()->GetRecipe(outrecipe));
+      crctx_.UpdateRsrc(outcommod, mat);
+      stocks_[outcommod].Push(mat);
+    } catch(cyclus::Error& e) {
       e.msg(Model::InformErrorMsg(e.msg()));
       throw e;
+    }
   }
 }
 

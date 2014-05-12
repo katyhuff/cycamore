@@ -92,9 +92,10 @@ void CommodConverterTest::TestAddCommod(cyclus::Material::Ptr mat,
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void CommodConverterTest::TestBeginProcessing(int n_processing, int n_reserves) {
+void CommodConverterTest::TestBeginProcessing(int n_reserves, int n_processing, int n_stocks) {
   src_facility->BeginProcessing_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount());
+  EXPECT_EQ(n_stocks, src_facility->StocksCount());
   EXPECT_EQ(n_reserves, src_facility->reserves_.count());
 }
 
@@ -226,15 +227,15 @@ TEST_F(CommodConverterTest, CommodsInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  EXPECT_THROW(TestBeginProcessing(1, 0), cyclus::Error);
+  EXPECT_THROW(TestBeginProcessing(1, 0, 0), cyclus::Error);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
   TestAddCommod(mat, in_c1, 1, 0);
-  TestBeginProcessing(1, 0);
+  TestBeginProcessing(0, 1, 0);
 
   mat = Material::CreateBlank(mat_size * 2);
   TestAddCommod(mat, in_c1, 2, 0);
-  TestBeginProcessing(2, 1);
+  TestBeginProcessing(0, 2, 0);
   
   TestFinishProcessing(1, 1);
   TestFinishProcessing(0, 2);

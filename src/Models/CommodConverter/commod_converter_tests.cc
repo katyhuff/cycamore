@@ -234,7 +234,7 @@ TEST_F(CommodConverterTest, CommodsInOut) {
   TestBeginProcessing(0, 1, 0);
 
   mat = Material::CreateBlank(mat_size * 2);
-  TestAddCommod(mat, in_c1, 2, 0);
+  TestAddCommod(mat, in_c1, 1, 1);
   TestBeginProcessing(0, 2, 0);
   
   TestFinishProcessing(1, 1);

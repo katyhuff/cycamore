@@ -227,7 +227,7 @@ TEST_F(CommodConverterTest, CommodsInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  EXPECT_THROW(TestBeginProcessing(1, 0, 0), cyclus::Error);
+  TestBeginProcessing(0, 0, 0);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
   TestAddCommod(mat, in_c1, 1, 0);

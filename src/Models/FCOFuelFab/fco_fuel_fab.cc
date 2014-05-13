@@ -108,7 +108,7 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   
   // in/out pair
   int npairs = qe->NElementsMatchingQuery("inpair");
-  for (int i = 0; i < npairs; i++) {
+  for (int i = 0; i < npairs; ++i) {
     QueryEngine* inpair = qe->QueryElement("inpair", i);
     std::string in_c = inpair->GetElementContent("incommodity");
     std::string in_r = inpair->GetElementContent("inrecipe");
@@ -120,12 +120,13 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   for (int i = 0; i < nlists; i++) {
     QueryEngine* preflist = qe->QueryElement("preflist", i);
     int prefiso = lexical_cast<int>(preflist->GetElementContent("prefiso"));
-    prefs_[prefiso] = std::vector<std::string>();
     int ncommods = preflist->NElementsMatchingQuery("sourcecommod");
-    for (int j = 0; j < ncommods; ++j){
+    std::vector<std::string> commods;
+    for (int j = 0; j < ncommods; j++){
       std::string commod = preflist->GetElementContent("sourcecommod",j);
-      prefs_[prefiso].push_back(commod); //TODO check that this is right
+      commods.push_back(commod); //TODO check that this is right
     }
+    prefs(prefiso, commods);
   }
 
   // facility data required
@@ -164,10 +165,11 @@ void FCOFuelFab::InitFrom(FCOFuelFab* m) {
   crctx_ = m->crctx_;
   out_recipe(m->out_recipe());
   out_commod(m->out_commod());
-  
+
   // facility params
   process_time(m->process_time());
   capacity(m->capacity());
+  prefs(m->prefs());
 
   // commodity production
   CopyProducedCommoditiesFrom(m);

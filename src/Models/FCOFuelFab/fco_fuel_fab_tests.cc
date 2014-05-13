@@ -74,7 +74,7 @@ void FCOFuelFabTest::SetUpSourceFacility() {
   src_facility->crctx(crctx);
   src_facility->process_time(process_time);
   src_facility->prefs(iso_1, pref_1);
-  src_facility->prefs(iso_1, pref_2);
+  src_facility->prefs(iso_2, pref_2);
   
   src_facility->AddCommodity(commodity);
   src_facility->cyclus::CommodityProducer::SetCapacity(commodity, capacity);
@@ -115,6 +115,8 @@ void FCOFuelFabTest::TestInitState(FCOFuelFab* fac) {
   EXPECT_TRUE(fac->ProducesCommodity(commod));
   EXPECT_EQ(capacity, fac->ProductionCapacity(commod));
   EXPECT_EQ(cost, fac->ProductionCost(commod));
+  EXPECT_EQ(pref_1, fac->prefs(iso_1));
+  EXPECT_EQ(pref_2, fac->prefs(iso_2));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

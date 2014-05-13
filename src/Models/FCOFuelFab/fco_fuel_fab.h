@@ -213,6 +213,10 @@ class FCOFuelFab : public cyclus::FacilityModel,
   inline void prefs(int iso, std::vector<std::string> prefs) { prefs_[iso] = prefs; }
   /// @brief returns preference list for an iso
   std::vector<std::string> prefs(int iso);
+  /// @brief the preferences for all isos
+  inline void prefs(std::map< int, std::vector<std::string> > prefs) { prefs_ = prefs; }
+  /// @brief returns full preference map
+  inline std::map< int, std::vector<std::string> > prefs() { return prefs_; }
   
   /// @brief the name of the goal out recipe
   inline void out_recipe(std::string s) { out_recipe_ = s; }

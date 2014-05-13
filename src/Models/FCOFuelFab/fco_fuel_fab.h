@@ -184,6 +184,9 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @return the total number of commods in processing
   int ProcessingCount_();
 
+  /// @return the number of a specific commod in processing
+  int ProcessingCount_(std::string commod);
+
   /// @return the total amt of commods in processing
   int ProcessingQty_();
 

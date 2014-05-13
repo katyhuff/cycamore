@@ -402,10 +402,21 @@ int FCOFuelFab::ProcessingQty_() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int FCOFuelFab::ProcessingCount_() {
-  double count = 0;
+  int count = 0;
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
     count += it->second.count();
+  }
+  return count;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int FCOFuelFab::ProcessingCount_(std::string commod) {
+  int count = 0;
+  std::map<std::string, cyclus::ResourceBuff>::iterator it;
+  it = processing_[Ready_()].find(commod);
+  if ( it!=processing_[Ready_()].end() ) {
+    count = it->second.count();
   }
   return count;
 }
@@ -513,18 +524,22 @@ double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
-  while (ProcessingCount_() > 0 ) {
-    cyclus::Material::Ptr current;
-    std::map< int, std::vector<std::string> >::const_iterator pref;
-    for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
-      int iso = (*pref).first;
-      std::vector< std::string > sources = (*pref).second;
-      double remaining_need = RemainingNeed_(current)[iso];
-      while (remaining_need > 0){
-        std::vector<std::string>::const_iterator source;
-        for (source = sources.begin(); source != sources.end(); ++source){
-          cyclus::ResourceBuff sourcebuff = processing_[Ready_()][(*source)];
-          remaining_need = MeetNeed_(iso, sourcebuff, current);
+  using cyclus::ResCast;
+  using cyclus::Material;
+  Material::Ptr current;
+  std::map< int, std::vector<std::string> >::const_iterator pref;
+  for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
+    int iso = pref->first;
+    std::vector< std::string > sources = pref->second;
+    double remaining_need = RemainingNeed_(current)[iso];
+    while (remaining_need > 0){
+      std::vector<std::string>::const_iterator source;
+      for (source = sources.begin(); source != sources.end(); ++source){
+        while (ProcessingCount_(*source) > 0 ) {
+          current->Absorb(ResCast<Material>(processing_[Ready_()][(*source)].Pop()));
+          //cyclus::ResourceBuff sourcebuff = processing_[Ready_()][(*source)];
+          //remaining_need = MeetNeed_(iso, sourcebuff, current);
+          remaining_need = 0;
         }
       }
     }

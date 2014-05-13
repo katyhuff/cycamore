@@ -459,7 +459,6 @@ void FCOFuelFab::BeginProcessing_() {
     while (!(*it).second.empty()){
       try {
         processing_[context()->time()][(*it).first].Push((*it).second.Pop());
-        std::cout << "popped, now " << ProcessingCount_() << std::endl;
       } catch(cyclus::Error& e) {
         e.msg(Model::InformErrorMsg(e.msg()));
         throw e;
@@ -514,8 +513,7 @@ double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
-  bool still_possible = 1;
-  while (still_possible) {
+  while (ProcessingCount_() > 0 ) {
     cyclus::Material::Ptr current;
     std::map< int, std::vector<std::string> >::const_iterator pref;
     for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){

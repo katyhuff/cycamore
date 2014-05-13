@@ -240,10 +240,10 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
 
   mat = Material::CreateBlank(mat_size * 2);
   TestAddCommods(mat, in_c1, 1);
-  //TestBeginProcessing(0, 2, 0, in_c1);
+  TestBeginProcessing(0, 2, 0, in_c1);
   
-  //TestFinishProcessing(1, 1);
-  //TestFinishProcessing(0, 2);
+  TestFinishProcessing(1, 1);
+  TestFinishProcessing(0, 2);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

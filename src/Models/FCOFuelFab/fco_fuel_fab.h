@@ -208,6 +208,11 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @brief the processing time required for a full process
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }
+
+  /// @brief the preferences for a specific iso
+  inline void prefs(int iso, std::vector<std::string> prefs) { prefs_[iso] = prefs; }
+  /// @brief returns preference list for an iso
+  std::vector<std::string> prefs(int iso);
   
   /// @brief the name of the goal out recipe
   inline void out_recipe(std::string s) { out_recipe_ = s; }
@@ -300,7 +305,7 @@ class FCOFuelFab : public cyclus::FacilityModel,
 
   /// @brief for materials that are now ready, determines the time received 
   int Ready_();
-  
+
   static std::map<Phase, std::string> phase_names_;
   int process_time_;
   double capacity_;

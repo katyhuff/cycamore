@@ -22,6 +22,7 @@ class FCOFuelFabTest : public ::testing::Test {
   std::string in_c1, in_c2, in_c3, in_c4, out_c1;
   std::string in_r1, in_r2, in_r3, in_r4, out_r1;
   int iso_1, iso_2;
+  std::vector<std::string> pref_1, pref_2;
   cyclus::CommodityRecipeContext crctx;
 
   int process_time;

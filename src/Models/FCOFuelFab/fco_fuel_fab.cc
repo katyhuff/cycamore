@@ -120,8 +120,9 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   for (int i = 0; i < nlists; i++) {
     QueryEngine* preflist = qe->QueryElement("preflist", i);
     int prefiso = lexical_cast<int>(preflist->GetElementContent("prefiso"));
+    prefs_[prefiso] = std::vector<std::string>();
     int ncommods = preflist->NElementsMatchingQuery("sourcecommod");
-    for (int j = 0; j < ncommods; j++){
+    for (int j = 0; j < ncommods; ++j){
       std::string commod = preflist->GetElementContent("sourcecommod",j);
       prefs_[prefiso].push_back(commod); //TODO check that this is right
     }
@@ -535,15 +536,16 @@ void FCOFuelFab::FabFuel_(){
     while (remaining_need > 0){
       std::vector<std::string>::const_iterator source;
       for (source = sources.begin(); source != sources.end(); ++source){
+        std::cout << "source = " << *source << std::endl;
         while (ProcessingCount_(*source) > 0 ) {
           current->Absorb(ResCast<Material>(processing_[Ready_()][(*source)].Pop()));
           //cyclus::ResourceBuff sourcebuff = processing_[Ready_()][(*source)];
           //remaining_need = MeetNeed_(iso, sourcebuff, current);
           remaining_need = 0;
+          stocks_[out_commod()].Push(current);
         }
       }
     }
-    stocks_[out_commod()].Push(current);
   }
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
 
@@ -553,6 +555,17 @@ void FCOFuelFab::FabFuel_(){
 int FCOFuelFab::Ready_(){
   int ready = context()->time()-process_time();  
   return ready;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+std::vector<std::string> FCOFuelFab::prefs(int iso){
+  std::vector<std::string> preflist;
+  std::map<int, std::vector<std::string > >::const_iterator it;
+  it = prefs_.find(iso);
+  if(it != prefs_.end()){
+    preflist = it->second;
+  }
+  return preflist;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

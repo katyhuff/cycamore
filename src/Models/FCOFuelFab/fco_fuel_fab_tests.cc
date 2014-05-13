@@ -46,7 +46,7 @@ void FCOFuelFabTest::InitParameters() {
   iso_1 = 92235;
   iso_2 = 94240;
   
-  process_time = 10;
+  process_time = 0;
   
   commodity = out_c1;
   capacity = 200;
@@ -84,10 +84,11 @@ void FCOFuelFabTest::TestAddCommods(cyclus::Material::Ptr mat, std::string
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFabTest::TestBeginProcessing(int n_processing, int n_reserves, std::string commod) {
+void FCOFuelFabTest::TestBeginProcessing(int n_reserves, int n_processing, int n_stocks, std::string commod) {
   src_facility->BeginProcessing_();
-  EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_reserves, src_facility->ReservesCount_(commod));
+  EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
+  EXPECT_EQ(n_stocks, src_facility->StocksCount(commod));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -231,20 +232,18 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   using cyclus::Material;
   double mat_size = 100; 
 
-  TestBeginProcessing(0, 0, in_c1);
+  TestBeginProcessing(0, 0, 0, in_c1);
   
   Material::Ptr mat = Material::CreateBlank(mat_size);
   TestAddCommods(mat, in_c1, 1);
-  TestBeginProcessing(0, 0, in_c1);// this is wrong
+  TestBeginProcessing(0, 1, 0,  in_c1);
 
   mat = Material::CreateBlank(mat_size * 2);
   TestAddCommods(mat, in_c1, 1);
-  TestBeginProcessing(0, 0, in_c1);// also wrong. wtf.
+  //TestBeginProcessing(0, 2, 0, in_c1);
   
-  TestFinishProcessing(1, 1);
-  TestFinishProcessing(0, 2);
-
-  //EXPECT_THROW(TestFinishProcessing(1, 0), cyclus::Error);
+  //TestFinishProcessing(1, 1);
+  //TestFinishProcessing(0, 2);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -405,7 +405,7 @@ int FCOFuelFab::ProcessingCount_() {
   double count = 0;
   std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
   for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
-    count += 1;
+    count += it->second.count();
   }
   return count;
 }
@@ -456,9 +456,10 @@ void FCOFuelFab::BeginProcessing_() {
                                     <<  " a resource to processing.";
   std::map<std::string, cyclus::ResourceBuff>::iterator it;
   for (it = reserves_.begin(); it != reserves_.end(); ++it){
-    if (!(*it).second.empty()){
+    while (!(*it).second.empty()){
       try {
         processing_[context()->time()][(*it).first].Push((*it).second.Pop());
+        std::cout << "popped, now " << ProcessingCount_() << std::endl;
       } catch(cyclus::Error& e) {
         e.msg(Model::InformErrorMsg(e.msg()));
         throw e;

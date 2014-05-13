@@ -47,10 +47,12 @@ class FCOFuelFabTest : public ::testing::Test {
   /// n is the expected number of mats of that commod currently in reserves
   void TestAddCommods(cyclus::Material::Ptr mat, std::string commod, int n);
 
-  /// @brief calls BeginProcessing and tests that the number of objects in core_ is
-  /// n_processing and the number of objects in reserves_ is n_reserves
-  /// commod is the in commodity of interest
-  void TestBeginProcessing(int n_processing, int n_reserves, std::string commod);
+  /// @brief calls BeginProcessing and tests that 
+  /// the number of objects of commod type commod 
+  /// in reserves is n_reserves
+  /// in processing is n_processing
+  /// and the number of objects in stocks_ is n_stocks
+  void TestBeginProcessing(int n_reserves, int n_processing, int n_stocks, std::string commod);
       
   /// @brief calls _ and tests that the number of objects in processing_ is
   /// n_processing and the number of objects in stocks_ is n_stocks

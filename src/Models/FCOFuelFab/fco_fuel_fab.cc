@@ -124,7 +124,7 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
     std::vector<std::string> commods;
     for (int j = 0; j < ncommods; j++){
       std::string commod = preflist->GetElementContent("sourcecommod",j);
-      commods.push_back(commod); //TODO check that this is right
+      commods.push_back(commod); 
     }
     prefs(prefiso, commods);
   }
@@ -483,14 +483,22 @@ void FCOFuelFab::BeginProcessing_() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::CompMap FCOFuelFab::GoalComp_(){
+  std::cout << "getting goal comp " << std::endl;
+  std::string out = out_recipe();
+  std::cout << "out_recipe " << out << std::endl;
+  cyclus::Composition::Ptr recipe = context()->GetRecipe(out_recipe());
+
   cyclus::CompMap to_ret = (context()->GetRecipe(out_recipe()))->atom();
+  std::cout << "getting goal comp " << std::endl;
   return to_ret;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::CompMap FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
+  std::cout << "getting need " << std::endl;
   cyclus::CompMap remaining_need = cyclus::compmath::Sub(GoalComp_(), 
       current->comp()->atom());
+  std::cout << "got need " << std::endl;
   return remaining_need;
 }
 
@@ -529,15 +537,17 @@ double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr
 void FCOFuelFab::FabFuel_(){
   using cyclus::ResCast;
   using cyclus::Material;
+  std::cout << "fabbing fuel " << std::endl;
   Material::Ptr current;
   std::map< int, std::vector<std::string> >::const_iterator pref;
   for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
+    std::cout << "ordering prefs " << std::endl;
     int iso = pref->first;
-    std::vector< std::string > sources = pref->second;
     double remaining_need = RemainingNeed_(current)[iso];
     while (remaining_need > 0){
+      std::cout << "remaining need > 0" << std::endl;
       std::vector<std::string>::const_iterator source;
-      for (source = sources.begin(); source != sources.end(); ++source){
+      for (source = prefs(iso).begin(); source != prefs(iso).end(); ++source){
         std::cout << "source = " << *source << std::endl;
         while (ProcessingCount_(*source) > 0 ) {
           current->Absorb(ResCast<Material>(processing_[Ready_()][(*source)].Pop()));

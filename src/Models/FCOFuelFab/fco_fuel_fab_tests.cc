@@ -75,7 +75,8 @@ void FCOFuelFabTest::SetUpSourceFacility() {
   src_facility->process_time(process_time);
   src_facility->prefs(iso_1, pref_1);
   src_facility->prefs(iso_2, pref_2);
-  
+  src_facility->out_recipe(out_r1);
+
   src_facility->AddCommodity(commodity);
   src_facility->cyclus::CommodityProducer::SetCapacity(commodity, capacity);
   src_facility->cyclus::CommodityProducer::SetCost(commodity, capacity);
@@ -195,6 +196,11 @@ TEST_F(FCOFuelFabTest, Print) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TEST_F(FCOFuelFabTest, OutRecipe) {
+  EXPECT_EQ("out_r1", src_facility->out_recipe());
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, Tick) {
   EXPECT_EQ(src_facility->crctx().in_recipe(in_c1), in_r1);
 }
@@ -251,7 +257,7 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0, in_c1);
   
-  //TestFinishProcessing(1, 1);
+  TestFinishProcessing(1, 1);
   //TestFinishProcessing(0, 2);
 }
 

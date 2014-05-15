@@ -482,80 +482,80 @@ void FCOFuelFab::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::CompMap FCOFuelFab::GoalComp_(){
-  std::cout << "getting goal comp " << std::endl;
+cyclus::Composition::Ptr FCOFuelFab::GoalComp_(){
   std::string out = out_recipe();
-  std::cout << "out_recipe " << out << std::endl;
   cyclus::Composition::Ptr recipe = context()->GetRecipe(out_recipe());
-
-  cyclus::CompMap to_ret = (context()->GetRecipe(out_recipe()))->atom();
-  std::cout << "getting goal comp " << std::endl;
+  cyclus::CompMap to_ret = recipe->atom();
   return to_ret;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+cyclus::CompMap FCOFuelFab::GoalCompMap_(){
+  return GoalComp_().atom();
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::CompMap FCOFuelFab::RemainingNeed_(cyclus::Material::Ptr current){
-  std::cout << "getting need " << std::endl;
-  cyclus::CompMap remaining_need = cyclus::compmath::Sub(GoalComp_(), 
-      current->comp()->atom());
-  std::cout << "got need " << std::endl;
+  cyclus::Composition::Ptr cur = current->comp();
+  cyclus::CompMap cur_atom = cur->atom();
+  cyclus::CompMap remaining_need = cyclus::compmath::Sub(GoalComp_(), cur_atom);
   return remaining_need;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-double FCOFuelFab::MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, 
-    cyclus::Material::Ptr current){
-  using cyclus::Material;
-  using cyclus::ResCast;
-
-  double remaining_need = RemainingNeed_(current)[iso]; 
-  if (remaining_need >= sourcebuff.quantity()) {
-    std::vector<Material::Ptr> manifest = ResCast<Material>(sourcebuff.PopQty(remaining_need));
-    std::vector<Material::Ptr>::const_iterator mat;
-    for(mat = manifest.begin(); mat != manifest.end(); ++mat){
-      current->Absorb(*mat);
-    }
-    remaining_need =0;
-  } else if (remaining_need < sourcebuff.quantity()){
-    while(sourcebuff.quantity() > 0){
-      Material::Ptr source = ResCast<Material>(sourcebuff.Pop());
-      remaining_need = MeetNeed_(iso, source, current);
-    }
+cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
+  double need = NPossible_()*GoalComp_()[iso];
+  cyclus::ResourceBuff fabbed_fuel_buff =  cyclus::ResourceBuff();
+  std::vector<std::string>::const_iterator pref;
+  for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
+      double avail = processing_[Ready_()][*pref].quantity();
+      double diff = need - avail;
+      if( need > avail ){
+        fabbed_fuel_buff.PushAll(processing_[Ready_()][*pref].PopQty(avail));
+        need = diff;
+      } else if ( need < avail ){
+        fabbed_fuel_buff.PushAll(processing_[Ready_()][*pref].PopQty(need));
+      }
   }
-  return remaining_need; 
+  return fabbed_fuel_buff;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-double FCOFuelFab::MeetNeed_(int iso, cyclus::Material::Ptr 
-    source, cyclus::Material::Ptr current){
-  double need = RemainingNeed_(current)[iso];
-  current->Absorb(source->ExtractQty(need));
-  return RemainingNeed_(current)[iso]; 
+int FCOFuelFab::NPossible_(){
+  int n_poss = 0;
+  std::map<int, double>::const_iterator it;
+  for(it = GoalComp_().begin(); it != GoalComp_().end(); ++it){
+    int iso = it->first;
+    double amt = it->second;
+    double avail = 0;
+    std::vector<std::string>::const_iterator pref;
+    for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
+      avail += processing_[Ready_()][*pref].quantity();
+    }
+    n_poss = (n_poss > avail/amt)? n_poss : int(std::floor(avail/amt));
+  }
+  return n_poss;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFab::MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff){
+  while(!fabbed_fuel_buff.empty()){
+    stocks_[out_commod()].Push(fabbed_fuel_buff.PopQty(GoalComp_().amt()));
+  }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::FabFuel_(){
   using cyclus::ResCast;
   using cyclus::Material;
-  std::cout << "fabbing fuel " << std::endl;
-  Material::Ptr current;
+  using cyclus::ResourceBuff;
+  int n = NPossible_();
+  for iso in prefs:
+  ResourceBuff fabbed_fuel_soup = new ResourceBuff();
   std::map< int, std::vector<std::string> >::const_iterator pref;
   for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
-    std::cout << "ordering prefs " << std::endl;
-    int iso = pref->first;
-    double remaining_need = RemainingNeed_(current)[iso];
-    while (remaining_need > 0){
-      std::cout << "remaining need > 0" << std::endl;
-      std::vector<std::string>::const_iterator source;
-      for (source = prefs(iso).begin(); source != prefs(iso).end(); ++source){
-        std::cout << "source = " << *source << std::endl;
-        while (ProcessingCount_(*source) > 0 ) {
-          current->Absorb(ResCast<Material>(processing_[Ready_()][(*source)].Pop()));
-          //cyclus::ResourceBuff sourcebuff = processing_[Ready_()][(*source)];
-          //remaining_need = MeetNeed_(iso, sourcebuff, current);
-          remaining_need = 0;
-          stocks_[out_commod()].Push(current);
-        }
+    MeetNeed_(iso, n);
+    MoveToStocks_(fabbed_fuel_buff);
       }
     }
   }

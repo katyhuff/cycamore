@@ -275,24 +275,28 @@ class FCOFuelFab : public cyclus::FacilityModel,
   void EndLife_();
   
   /// @brief calculates goal material composition
-  cyclus::CompMap GoalComp_();
+  cyclus::CompMap GoalCompMap_();
+
+  /// @brief calculates goal material composition
+  cyclus::Composition::Ptr GoalComp_();
 
   /// @brief calculates the difference between current and the goal composition
   cyclus::CompMap RemainingNeed_(cyclus::Material::Ptr current);
   
   /// @brief sorts through the processing buffer to meet the need 
   /// @param iso the isotope which is needed
-  /// @param sourcebuff a resource buffer holding material sources of the iso
-  /// @param current the current material object having its need met
-  /// @return the remaining need for that iso
-  double MeetNeed_(int iso, cyclus::ResourceBuff sourcebuff, cyclus::Material::Ptr current);
-  
-  /// @brief meets the need using a specific material 
-  /// @param iso the isotope which is needed
-  /// @param source a material source of that isotope
-  /// @param current the current material object having its need met
-  /// @return the remaining need for that iso
-  double MeetNeed_(int iso, cyclus::Material::Ptr source, cyclus::Material::Ptr current);
+  /// @return the number of possible fuel assemblies
+  cyclus::ResourceBuff MeetNeed_(int iso, int n);
+
+  /// used by FabFuel_, this function moves ready fuel into the stocks in 
+  /// chunks the size of the goal composition 
+  void MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff);
+
+  /// returns the number of possible assemblies in the processing buffer
+  int NPossible_();
+
+  /// @brief finds the possible number of fuel assemblies, based on processing_
+  /// @param 
   
   /// @brief conducts the fuel fabrication step, making as many fuel objects as 
   /// possible.

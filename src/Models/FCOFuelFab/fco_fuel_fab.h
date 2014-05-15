@@ -274,15 +274,15 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// @TODO check that this does the right stuff.
   void EndLife_();
   
+  /// @brief calculates the total mass of the goal material composition [kg]
+  double GoalCompMass_();
+
   /// @brief calculates goal material composition
   cyclus::CompMap GoalCompMap_();
 
   /// @brief calculates goal material composition
   cyclus::Composition::Ptr GoalComp_();
 
-  /// @brief calculates the difference between current and the goal composition
-  cyclus::CompMap RemainingNeed_(cyclus::Material::Ptr current);
-  
   /// @brief sorts through the processing buffer to meet the need 
   /// @param iso the isotope which is needed
   /// @return the number of possible fuel assemblies

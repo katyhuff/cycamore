@@ -15,7 +15,7 @@ typedef std::pair<std::string, int> BuildOrder;
 /**
    a helper class for storing and extracting build orders
  */
-class BuildOrderList {
+class SupplyBuildOrderList {
  public:
   /// add a build order
   void AddBuildOrder(std::string prototype, int number, int time);
@@ -95,7 +95,7 @@ class SupplyDeployInst : public cyclus::InstModel {
   /**
      a collection of orders to build
    */
-  BuildOrderList build_orders_;
+  SupplyBuildOrderList build_orders_;
 
   /* ------------------- */
 

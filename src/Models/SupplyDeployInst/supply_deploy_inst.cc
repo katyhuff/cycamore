@@ -8,7 +8,7 @@
 namespace cycamore {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void BuildOrderList::AddBuildOrder(std::string prototype, int number,
+void SupplyBuildOrderList::AddBuildOrder(std::string prototype, int number,
                                    int time) {
   using std::map;
   using std::set;
@@ -27,7 +27,7 @@ void BuildOrderList::AddBuildOrder(std::string prototype, int number,
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::set<BuildOrder> BuildOrderList::ExtractOrders(int time) {
+std::set<BuildOrder> SupplyBuildOrderList::ExtractOrders(int time) {
   using std::map;
   using std::set;
   using std::make_pair;

@@ -10,30 +10,15 @@
 
 namespace cycamore {
 
-typedef std::pair<std::string, int> BuildOrder;
-
-/**
-   a helper class for storing and extracting build orders
- */
-class SupplyBuildOrderList {
- public:
-  /// add a build order
-  void AddBuildOrder(std::string prototype, int number, int time);
-
-  /// extract a set of build orders
-  std::set<BuildOrder> ExtractOrders(int time);
-
- private:
-  std::map<int, std::set<BuildOrder> > all_orders_;
-};
-
 /**
    @class SupplyDeployInst
    The SupplyDeployInst class inherits from the InstModel
    class and is dynamically loaded by the Model class when requested.
 
-   This model implements a simple institution model that deploys
-   specific facilities as defined explicitly in the input file.
+   This model implements a simple institution model that decomissions
+   facilities according to a commodity availability rule specified in the input 
+   file. Then, it optionally replaces those facilities with some number of 
+   another prototype.
  */
 class SupplyDeployInst : public cyclus::InstModel {
   /* --------------------
@@ -62,10 +47,7 @@ class SupplyDeployInst : public cyclus::InstModel {
   /**
      initialize members from a different model
   */
-  void InitFrom(SupplyDeployInst* m) {
-    cyclus::InstModel::InitFrom(m);
-    build_orders_ = m->build_orders_;
-  };
+  void InitFrom(SupplyDeployInst* m);
 
   /**
      Initialize members related to derived module class
@@ -88,14 +70,51 @@ class SupplyDeployInst : public cyclus::InstModel {
   /* ------------------- */
 
   /* --------------------
-   * This INSTMODEL classes have these members
+   * This INSTMODEL class has these members
    * --------------------
    */
- protected:
   /**
-     a collection of orders to build
+     returns the number of facilities to decommission
+     based on the rule specified in the input
+     @param time the time at whichthe decommissioning is happening
    */
-  SupplyBuildOrderList build_orders_;
+  int NumToDecommission(int time);
+
+  /**
+     Returns the quantity of a commod that was offered in the last timestep.  
+     Note that this should be in the Cyclus toolkit rather than bogarted by 
+     this class. 
+     @param commod a string, the commodity of interest
+     @return a double, the available quantity.
+    */
+  double QuantityAvailable(std::string commod);
+
+  /// @brief the name of the prototype that this inst decommissions
+  inline void to_decomm(std::string to_decomm) { to_decomm_ = to_decomm; } 
+  inline std::string to_decomm() const { return to_decomm_; } 
+
+  /// @brief the name of the prototype that this inst builds as a replacement
+  inline void replacement(std::string replacement) { replacement_ = replacement; } 
+  inline std::string replacement() const { return replacement_; } 
+
+  /// @brief the name of the prototype that this inst decommissions
+  inline void repl_rate(int repl_rate) { repl_rate_ = repl_rate; } 
+  inline int repl_rate() const { return repl_rate_; } 
+
+  /// @brief the quantity of the commod necessary to trigger a decommisioning
+  inline void rule_quantity(double rule_quantity) { rule_quantity_ = rule_quantity; } 
+  inline double rule_quantity() const { return rule_quantity_; } 
+
+  /// @brief the quantity of the commod necessary to trigger a decommisioning
+  inline void rule_commod(std::string rule_commod) { rule_commod_ = rule_commod; } 
+  inline std::string rule_commod() const { return rule_commod_; } 
+
+ protected:
+  std::string to_decomm_;
+  std::string replacement_;
+  std::string rule_commod_;
+  double rule_quantity_;
+  int repl_rate_;
 
   /* ------------------- */
 

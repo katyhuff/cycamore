@@ -8,40 +8,6 @@
 namespace cycamore {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SupplyBuildOrderList::AddBuildOrder(std::string prototype, int number,
-                                   int time) {
-  using std::map;
-  using std::set;
-  using std::make_pair;
-  map<int, set<BuildOrder> >::iterator it;
-  it = all_orders_.find(time);
-
-  if (it == all_orders_.end()) {
-    set<BuildOrder> orders;
-    orders.insert(make_pair(prototype, number));
-    all_orders_.insert(make_pair(time, orders));
-  } else {
-    it->second.insert(make_pair(prototype, number));
-  }
-
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::set<BuildOrder> SupplyBuildOrderList::ExtractOrders(int time) {
-  using std::map;
-  using std::set;
-  using std::make_pair;
-  map<int, set<BuildOrder> >::iterator it;
-  set<BuildOrder> orders;
-  it = all_orders_.find(time);
-  if (it != all_orders_.end()) {
-    orders = it->second;
-    all_orders_.erase(it);
-  }
-  return orders;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SupplyDeployInst::SupplyDeployInst(cyclus::Context* ctx)
     : cyclus::InstModel(ctx),
       cyclus::Model(ctx) {}
@@ -52,19 +18,27 @@ SupplyDeployInst::~SupplyDeployInst() {}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::string SupplyDeployInst::schema() {
   return
-    "<oneOrMore>                               \n"
-    "	<element name=\"buildorder\">            \n"
-    "	  <element name=\"prototype\">           \n"
-    "	    <data type=\"string\"/>              \n"
-    "	  </element>                             \n"
-    "	  <element name=\"number\">              \n"
-    "	    <data type=\"nonNegativeInteger\"/>  \n"
-    "	  </element>                             \n"
-    "	  <element name=\"date\">                \n"
-    "	    <data type=\"nonNegativeInteger\"/>  \n"
-    "	  </element>                             \n"
-    "	</element>                               \n"
-    "</oneOrMore>                              \n";
+    "<element name=\"decomissionrule\">       \n"
+    "  <element name=\"prototype\">           \n"
+    "    <data type=\"string\"/>              \n"
+    "  </element>                             \n"
+    "  <element name=\"commodity\">           \n"
+    "    <data type=\"string\"/>              \n"
+    "  </element>                             \n"
+    "  <element name=\"quantity\">            \n"
+    "    <data type=\"double\"/>              \n"
+    "  </element>                             \n"
+    "  <optional>                             \n"
+    "  <element name=\"replacement\">         \n"
+    "    <data type=\"string\"/>              \n"
+    "  </element>                             \n"
+    "  </optional>                            \n"
+    "  <optional>                             \n"
+    "  <element name=\"repl_rate\">           \n"
+    "    <data type=\"nonNegativeInteger\"/>  \n"
+    "  </element>                             \n"
+    "  </optional>                            \n"
+    "</element>                               \n";
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,39 +46,70 @@ void SupplyDeployInst::InitFrom(cyclus::QueryEngine* qe) {
   cyclus::InstModel::InitFrom(qe);
   qe = qe->QueryElement("model/" + ModelImpl());
 
-  using std::map;
   using std::string;
-  using std::make_pair;
-  string query = "buildorder";
+  using cyclus::GetOptionalQuery;
 
-  int nOrders = qe->NElementsMatchingQuery(query);
+  string query = "decomissionrule";
 
-  for (int i = 0; i < nOrders; i++) {
-    cyclus::QueryEngine* order = qe->QueryElement(query, i);
-    string name = order->GetElementContent("prototype");
-    int number = atoi(order->GetElementContent("number").c_str());
-    int time = atoi(order->GetElementContent("date").c_str());
-    build_orders_.AddBuildOrder(name, number, time);
-  }
+  cyclus::QueryEngine* rule = qe->QueryElement(query);
+
+  // required facility data
+  string prototype = rule->GetElementContent("prototype");
+  to_decomm(prototype);
+  string commod = rule->GetElementContent("commodity");
+  rule_commod(commod);
+  double quantity = atof(rule->GetElementContent("quantity").c_str());
+  rule_quantity(quantity);
+
+  // optional facility data
+  string repl = GetOptionalQuery<string>(rule, "replacement", replacement());
+  replacement(repl);
+  int rate = GetOptionalQuery<int>(rule, "repl_rate", repl_rate());
+  repl_rate(rate);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void SupplyDeployInst::InitFrom(SupplyDeployInst* m){
+  cyclus::InstModel::InitFrom(m);
+  to_decomm_ = m->to_decomm_;
+  replacement_ = m->replacement_;
+  rule_commod_ = m->rule_commod_;
+  rule_quantity_ = m->rule_quantity_;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SupplyDeployInst::Tick(int time) {
-  using std::map;
-  using std::set;
-  using std::make_pair;
-  set<BuildOrder> orders = build_orders_.ExtractOrders(time);
-  for (set<BuildOrder>::iterator it = orders.begin();
-       it != orders.end(); it++) {
-
-    std::string prototype = it->first;
-    int number = it->second;
-    for (int i = 0; i < number; i++) {
-      // build as many as required
-      Build(prototype);
+  n = NumToDecommission(time);
+  // decommission as many as required
+  for (int i = 0; i < n; i++) {
+    Decommission(to_decomm());
+    // replace decomissioned facs at the replacement rate
+    for (int j = 0; j < repl_rate(); j++) {
+      Build(replacement());
     }
   }
   InstModel::Tick(time);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int SupplyDeployInst::NumToDeommission(int time) {
+  using std::string;
+
+  int to_ret = 0;
+  double avail = QuantityAvailable(rule_commod());
+
+  if( avail > rule_quantity() ) {
+    to_ret = int(floor(avail/rule_quantity()));
+  }
+
+  return to_ret;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+double SupplyDeployInst::QuantityAvailable(std::string commod){
+  // ask the market how much was offered last month.
+  //return cyclus::Market(commod)->avail();
+  return 100.0; // @TODO this is obviously a placeholder
 }
 
 /* ------------------- */

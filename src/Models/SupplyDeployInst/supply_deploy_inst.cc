@@ -92,7 +92,7 @@ void SupplyDeployInst::Tick(int time) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int SupplyDeployInst::NumToDeommission(int time) {
+int SupplyDeployInst::NumToDecommission(int time) {
   using std::string;
 
   int to_ret = 0;

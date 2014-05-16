@@ -82,7 +82,7 @@ void SupplyDeployInst::Tick(int time) {
   int n = NumToDecommission(time);
   // decommission as many as required
   for (int i = 0; i < n; i++) {
-    Decommission(to_decomm());
+    //Decommission(to_decomm());
     // replace decomissioned facs at the replacement rate
     for (int j = 0; j < repl_rate(); j++) {
       Build(replacement());

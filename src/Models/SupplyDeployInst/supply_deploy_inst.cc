@@ -79,7 +79,7 @@ void SupplyDeployInst::InitFrom(SupplyDeployInst* m){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SupplyDeployInst::Tick(int time) {
-  n = NumToDecommission(time);
+  int n = NumToDecommission(time);
   // decommission as many as required
   for (int i = 0; i < n; i++) {
     Decommission(to_decomm());

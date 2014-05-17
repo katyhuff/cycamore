@@ -496,7 +496,6 @@ cyclus::CompMap FCOFuelFab::GoalCompMap_(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 double FCOFuelFab::GoalCompMass_(){
   double amt = 0;
-  std::cout << "getting goal comp mass" << std::endl;
   std::map<int, double>::const_iterator it;
   cyclus::CompMap goal = GoalCompMap_();
   for(it=goal.begin(); it!=goal.end(); ++it){
@@ -517,8 +516,9 @@ cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
       if( need > avail ){
         fabbed_fuel_buff.PushAll(processing_[Ready_()][*pref].PopQty(avail));
         need = diff;
-      } else if ( need < avail ){
+      } else if ( need <= avail ){
         fabbed_fuel_buff.PushAll(processing_[Ready_()][*pref].PopQty(need));
+        need = 0;
       }
   }
   return fabbed_fuel_buff;

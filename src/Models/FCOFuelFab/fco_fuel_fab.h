@@ -292,6 +292,10 @@ class FCOFuelFab : public cyclus::FacilityModel,
   /// chunks the size of the goal composition 
   void MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff);
 
+  /// used by FabFuel_, this function collapses all the materials in a resource 
+  /// buffer into one material soup.
+  cyclus::Material::Ptr CollapseBuff(cyclus::ResourceBuff to_collapse);
+
   /// returns the number of possible assemblies in the processing buffer
   int NPossible_();
 

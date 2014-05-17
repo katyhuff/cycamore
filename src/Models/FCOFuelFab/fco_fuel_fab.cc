@@ -501,27 +501,28 @@ double FCOFuelFab::GoalCompMass_(){
   for(it=goal.begin(); it!=goal.end(); ++it){
     amt += it->second;
   }
+  std::cout << "got goal comp mass " << std::endl;
   return amt;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
+  cyclus::ResourceBuff iso_source_buff =  cyclus::ResourceBuff(); 
   double need = n*GoalCompMap_()[iso];
-  cyclus::ResourceBuff fabbed_fuel_buff =  cyclus::ResourceBuff();
   std::set<std::string>::const_iterator pref;
   std::set<std::string> preflist = prefs(iso);
   for(pref = preflist.begin(); pref != preflist.end(); ++pref){
       double avail = processing_[Ready_()][*pref].quantity();
       double diff = need - avail;
-      if( need > avail ){
-        fabbed_fuel_buff.PushAll(processing_[Ready_()][*pref].PopQty(avail));
+      if( need > 0 && need > avail ){
+        iso_source_buff.PushAll(processing_[Ready_()][*pref].PopQty(avail));
         need = diff;
-      } else if ( need <= avail ){
-        fabbed_fuel_buff.PushAll(processing_[Ready_()][*pref].PopQty(need));
+      } else if ( need > 0 && need <= avail ){
+        iso_source_buff.PushAll(processing_[Ready_()][*pref].PopQty(need));
         need = 0;
       }
   }
-  return fabbed_fuel_buff;
+  return iso_source_buff;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -551,16 +552,33 @@ int FCOFuelFab::NPossible_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+cyclus::Material::Ptr FCOFuelFab::CollapseBuff(cyclus::ResourceBuff to_collapse){
+  using cyclus::Manifest;
+  using cyclus::Material;
+  using cyclus::ResCast;
+  double qty =  to_collapse.quantity();
+  Manifest manifest = to_collapse.PopQty(qty);
+
+  Material::Ptr back = ResCast<Material>(manifest.back());
+  while ( !manifest.empty() ){
+    back->Absorb(ResCast<Material>(manifest.back()));
+    manifest.pop_back();
+  }
+  return back;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFab::MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff){
   using cyclus::Manifest;
   using cyclus::Material;
   using cyclus::ResCast;
 
+  Material::Ptr soup = CollapseBuff(fabbed_fuel_buff);
   while(!fabbed_fuel_buff.empty()){
-    std::cout << "fabbed fuel buff not empty " << std::endl;
-    Manifest::const_iterator it;
     Manifest manifest = fabbed_fuel_buff.PopQty(GoalCompMass_());
+    std::cout << "getting manifest back... " << std::endl;
     Material::Ptr back = ResCast<Material>(manifest.back());
+    std::cout << "manifest has a back... " << std::endl;
     manifest.pop_back();
     while ( !manifest.empty() ){
       back->Absorb(ResCast<Material>(manifest.back()));
@@ -578,13 +596,15 @@ void FCOFuelFab::FabFuel_(){
   int n = NPossible_();
 
   std::map< int, std::set<std::string> >::const_iterator pref;
+  ResourceBuff fabbed_fuel_buff;
   for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
     int iso = pref->first;
-    ResourceBuff fabbed_fuel_buff = MeetNeed_(iso, n);
+    // here , you need to ADD to the fabbed fuel buff, not create a new one
+    fabbed_fuel_buff.PushAll(MeetNeed_(iso, n).PopQty(n*GoalCompMass_()));
     std::cout << "met need " << std::endl;
-    MoveToStocks_(fabbed_fuel_buff);
     std::cout << "moved to stocks" << std::endl;
   }
+  MoveToStocks_(fabbed_fuel_buff);
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
 
 }

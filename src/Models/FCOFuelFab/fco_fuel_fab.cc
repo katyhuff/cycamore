@@ -508,7 +508,8 @@ cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
   double need = n*GoalCompMap_()[iso];
   cyclus::ResourceBuff fabbed_fuel_buff =  cyclus::ResourceBuff();
   std::vector<std::string>::const_iterator pref;
-  for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
+  std::vector<std::string> preflist = prefs(iso);
+  for(pref = preflist.begin(); pref != preflist.end(); ++pref){
       double avail = processing_[Ready_()][*pref].quantity();
       double diff = need - avail;
       if( need > avail ){
@@ -570,15 +571,15 @@ void FCOFuelFab::FabFuel_(){
   using cyclus::Material;
   using cyclus::ResourceBuff;
 
-  std::cout << "get npossible?" << std::endl;
   int n = NPossible_();
-  std::cout << "got npossible" << std::endl;
 
   std::map< int, std::vector<std::string> >::const_iterator pref;
   for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
     int iso = pref->first;
     ResourceBuff fabbed_fuel_buff = MeetNeed_(iso, n);
+    std::cout << "met need " << std::endl;
     MoveToStocks_(fabbed_fuel_buff);
+    std::cout << "moved to stocks" << std::endl;
   }
   LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
 

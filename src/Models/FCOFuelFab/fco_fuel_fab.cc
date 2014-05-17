@@ -527,11 +527,14 @@ int FCOFuelFab::NPossible_(){
   std::map<int, double>::const_iterator it;
   for(it = GoalCompMap_().begin(); it != GoalCompMap_().end(); ++it){
     int iso = it->first;
+    std::cout << "iso = " << iso << std::endl;
     double amt = it->second;
+    std::cout << "amt = " << amt << std::endl;
     double avail = 0;
     std::vector<std::string>::const_iterator pref;
     for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
       avail += processing_[Ready_()][*pref].quantity();
+      std::cout << "avail = " << avail << std::endl;
     }
     n_poss = (n_poss > avail/amt)? n_poss : int(std::floor(avail/amt));
   }
@@ -562,7 +565,9 @@ void FCOFuelFab::FabFuel_(){
   using cyclus::Material;
   using cyclus::ResourceBuff;
 
+  std::cout << "get npossible?" << std::endl;
   int n = NPossible_();
+  std::cout << "got npossible" << std::endl;
 
   std::map< int, std::vector<std::string> >::const_iterator pref;
   for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
@@ -587,6 +592,8 @@ std::vector<std::string> FCOFuelFab::prefs(int iso){
   it = prefs_.find(iso);
   if(it != prefs_.end()){
     preflist = it->second;
+  } else { 
+    throw cyclus::ValueError("Invalid pref iso. There is no source named for this iso.");
   }
   return preflist;
 }

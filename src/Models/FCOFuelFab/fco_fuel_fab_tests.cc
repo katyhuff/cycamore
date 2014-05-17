@@ -257,7 +257,7 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0, in_c1);
   
-  //TestFinishProcessing(1, 1);
+  TestFinishProcessing(1, 1);
   //TestFinishProcessing(0, 2);
 }
 

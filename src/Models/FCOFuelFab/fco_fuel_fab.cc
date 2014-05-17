@@ -529,6 +529,7 @@ int FCOFuelFab::NPossible_(){
   for(it = goal.begin(); it != goal.end(); ++it){
     int iso = it->first;
     double amt = it->second;
+    double avail = 0;
     std::vector<std::string>::const_iterator pref;
     for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
       std::map< std::string, cyclus::ResourceBuff >::iterator found;

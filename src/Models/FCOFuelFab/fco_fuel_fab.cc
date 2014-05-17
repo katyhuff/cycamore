@@ -496,8 +496,10 @@ cyclus::CompMap FCOFuelFab::GoalCompMap_(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 double FCOFuelFab::GoalCompMass_(){
   double amt = 0;
+  std::cout << "getting goal comp mass" << std::endl;
   std::map<int, double>::const_iterator it;
-  for(it=GoalCompMap_().begin(); it!=GoalCompMap_().end(); ++it){
+  cyclus::CompMap goal = GoalCompMap_();
+  for(it=goal.begin(); it!=goal.end(); ++it){
     amt += it->second;
   }
   return amt;
@@ -555,6 +557,7 @@ void FCOFuelFab::MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff){
   using cyclus::ResCast;
 
   while(!fabbed_fuel_buff.empty()){
+    std::cout << "fabbed fuel buff not empty " << std::endl;
     Manifest::const_iterator it;
     Manifest manifest = fabbed_fuel_buff.PopQty(GoalCompMass_());
     Material::Ptr back = ResCast<Material>(manifest.back());

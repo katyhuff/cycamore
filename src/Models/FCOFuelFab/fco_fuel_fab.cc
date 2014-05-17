@@ -525,7 +525,9 @@ cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
 int FCOFuelFab::NPossible_(){
   int n_poss = 0;
   std::map<int, double>::const_iterator it;
-  for(it = GoalCompMap_().begin(); it != GoalCompMap_().end(); ++it){
+  cyclus::CompMap goal = GoalCompMap_();
+  for(it = goal.begin(); it != goal.end(); ++it){
+    std::cout<<"new it" << std::endl;
     int iso = it->first;
     std::cout << "iso = " << iso << std::endl;
     double amt = it->second;
@@ -533,11 +535,25 @@ int FCOFuelFab::NPossible_(){
     double avail = 0;
     std::vector<std::string>::const_iterator pref;
     for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
-      avail += processing_[Ready_()][*pref].quantity();
-      std::cout << "avail = " << avail << std::endl;
+      std::map< std::string, cyclus::ResourceBuff >::iterator found;
+      found = processing_[Ready_()].find(*pref);
+      std::cout << "queried pref = " << *pref << std::endl;
+      bool isfound = (found!=processing_[Ready_()].end());
+      std::cout << "isfound bool =  " << isfound << std::endl;
+      if(isfound){
+        std::cout << "queried pref " << *pref << " found" <<std::endl;
+        avail += processing_[Ready_()][*pref].quantity();
+        std::cout << "avail = " << avail << std::endl;
+      }
+      std::cout << "passed conditional " << std::endl;
     }
-    n_poss = (n_poss > avail/amt)? n_poss : int(std::floor(avail/amt));
+    std::cout << "finding n_poss " << std::endl;
+    int prev = n_poss;
+    int curr = int(std::floor(avail/amt));
+    n_poss = (prev > curr)? prev : curr;
+    std::cout << "found n_poss = " << n_poss << std::endl;
   }
+  std::cout << "final n_poss = " << n_poss << std::endl;
   return n_poss;
 }
 

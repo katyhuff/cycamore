@@ -121,10 +121,10 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
     QueryEngine* preflist = qe->QueryElement("preflist", i);
     int prefiso = lexical_cast<int>(preflist->GetElementContent("prefiso"));
     int ncommods = preflist->NElementsMatchingQuery("sourcecommod");
-    std::vector<std::string> commods;
+    std::set<std::string> commods;
     for (int j = 0; j < ncommods; j++){
       std::string commod = preflist->GetElementContent("sourcecommod",j);
-      commods.push_back(commod); 
+      commods.insert(commod); 
     }
     prefs(prefiso, commods);
   }
@@ -507,8 +507,8 @@ double FCOFuelFab::GoalCompMass_(){
 cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
   double need = n*GoalCompMap_()[iso];
   cyclus::ResourceBuff fabbed_fuel_buff =  cyclus::ResourceBuff();
-  std::vector<std::string>::const_iterator pref;
-  std::vector<std::string> preflist = prefs(iso);
+  std::set<std::string>::const_iterator pref;
+  std::set<std::string> preflist = prefs(iso);
   for(pref = preflist.begin(); pref != preflist.end(); ++pref){
       double avail = processing_[Ready_()][*pref].quantity();
       double diff = need - avail;
@@ -531,8 +531,9 @@ int FCOFuelFab::NPossible_(){
     int iso = it->first;
     double amt = it->second;
     double avail = 0;
-    std::vector<std::string>::const_iterator pref;
-    for(pref = prefs(iso).begin(); pref != prefs(iso).end(); ++pref){
+    std::set<std::string>::const_iterator pref;
+    std::set<std::string> preflist = prefs(iso);
+    for(pref = preflist.begin(); pref != preflist.end(); ++pref){
       std::map< std::string, cyclus::ResourceBuff >::iterator found;
       found = processing_[Ready_()].find(*pref);
       bool isfound = (found!=processing_[Ready_()].end());
@@ -573,7 +574,7 @@ void FCOFuelFab::FabFuel_(){
 
   int n = NPossible_();
 
-  std::map< int, std::vector<std::string> >::const_iterator pref;
+  std::map< int, std::set<std::string> >::const_iterator pref;
   for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
     int iso = pref->first;
     ResourceBuff fabbed_fuel_buff = MeetNeed_(iso, n);
@@ -592,9 +593,9 @@ int FCOFuelFab::Ready_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::vector<std::string> FCOFuelFab::prefs(int iso){
-  std::vector<std::string> preflist;
-  std::map<int, std::vector<std::string > >::const_iterator it;
+std::set<std::string> FCOFuelFab::prefs(int iso){
+  std::set<std::string> preflist;
+  std::map<int, std::set<std::string > >::const_iterator it;
   it = prefs_.find(iso);
   if(it != prefs_.end()){
     preflist = it->second;

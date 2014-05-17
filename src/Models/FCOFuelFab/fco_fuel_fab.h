@@ -210,13 +210,13 @@ class FCOFuelFab : public cyclus::FacilityModel,
   inline int process_time() const { return process_time_; }
 
   /// @brief the preferences for a specific iso
-  inline void prefs(int iso, std::vector<std::string> prefs) { prefs_[iso] = prefs; }
+  inline void prefs(int iso, std::set<std::string> prefs) { prefs_[iso] = prefs; }
   /// @brief returns preference list for an iso
-  std::vector<std::string> prefs(int iso);
+  std::set<std::string> prefs(int iso);
   /// @brief the preferences for all isos
-  inline void prefs(std::map< int, std::vector<std::string> > prefs) { prefs_ = prefs; }
+  inline void prefs(std::map< int, std::set<std::string> > prefs) { prefs_ = prefs; }
   /// @brief returns full preference map
-  inline std::map< int, std::vector<std::string> > prefs() { return prefs_; }
+  inline std::map< int, std::set<std::string> > prefs() { return prefs_; }
   
   /// @brief the name of the goal out recipe
   inline void out_recipe(std::string s) { out_recipe_ = s; }
@@ -318,7 +318,7 @@ class FCOFuelFab : public cyclus::FacilityModel,
   int process_time_;
   double capacity_;
   Phase phase_;
-  std::map< int, std::vector< std::string > > prefs_;
+  std::map< int, std::set< std::string > > prefs_;
 
   /// @brief the name of the goal recipe
   std::string out_recipe_;

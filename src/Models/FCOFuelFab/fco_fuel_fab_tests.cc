@@ -44,11 +44,11 @@ void FCOFuelFabTest::InitParameters() {
   crctx.AddInCommod(in_c4, in_r4, out_c1, out_r1);
 
   iso_1 = 92235;
-  pref_1.push_back(in_c1);
-  pref_1.push_back(in_c2);
+  pref_1.insert(in_c1);
+  pref_1.insert(in_c2);
   iso_2 = 94240;
-  pref_2.push_back(in_c3);
-  pref_2.push_back(in_c4);
+  pref_2.insert(in_c3);
+  pref_2.insert(in_c4);
   
   process_time = 0;
   

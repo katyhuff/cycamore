@@ -57,15 +57,23 @@ void FCOFuelFabTest::InitParameters() {
   cost = capacity;
   
   // recipes
+  // sources for 92235
   cyclus::CompMap v;
   v[92235] = 1;
-  v[92238] = 2;
   cyclus::Composition::Ptr recipe = cyclus::Composition::CreateFromAtom(v);
   tc_.get()->AddRecipe(in_r1, recipe);
   tc_.get()->AddRecipe(in_r2, recipe);
-
-  v[94239] = 0.25;
-  recipe = cyclus::Composition::CreateFromAtom(v);
+  // sources for 94240
+  cyclus::CompMap w;
+  w[94240] = 2;
+  recipe = cyclus::Composition::CreateFromAtom(w);
+  tc_.get()->AddRecipe(in_r3, recipe);
+  tc_.get()->AddRecipe(in_r4, recipe);
+  // goal recipe includes all the things.
+  cyclus::CompMap y;
+  y[92235] = 1;
+  y[94240] = 2;
+  recipe = cyclus::Composition::CreateFromAtom(y);
   tc_.get()->AddRecipe(out_r1, recipe);
 }
 

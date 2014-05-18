@@ -253,23 +253,23 @@ TEST_F(FCOFuelFabTest, AddCommods) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, CommodsInOut) {
   using cyclus::Material;
-  double mat_size = 100.0; 
+  double mat_size = 1000.0; 
 
   TestBeginProcessing(0, 0, 0, in_c1);
-  
-  Material::Ptr mat = Material::CreateBlank(mat_size);
+
+  Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 1, 0,  in_c1);
-
-  mat = Material::CreateBlank(mat_size * 2);
+  mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
-  TestBeginProcessing(0, 2, 0, in_c1);
-  
-  mat = Material::CreateBlank(mat_size * 2);
-  TestAddCommods(mat, in_c1, 1);
-  mat = Material::CreateBlank(mat_size * 2);
+  TestBeginProcessing(0, 2, 0,  in_c1);
+  mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r3));
   TestAddCommods(mat, in_c3, 1);
-  TestFinishProcessing(2, 0);
+  mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r3));
+  TestAddCommods(mat, in_c3, 2);
+  //TestBeginProcessing(0, 3, 0,  in_c3);
+  //TestBeginProcessing(0, 2, 0,  in_c3);
+  //TestFinishProcessing(1, 1);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

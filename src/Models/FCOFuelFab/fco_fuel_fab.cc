@@ -501,7 +501,6 @@ double FCOFuelFab::GoalCompMass_(){
   for(it=goal.begin(); it!=goal.end(); ++it){
     amt += it->second;
   }
-  std::cout << "got goal comp mass " << std::endl;
   return amt;
 }
 
@@ -527,7 +526,9 @@ cyclus::ResourceBuff FCOFuelFab::MeetNeed_(int iso, int n){
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int FCOFuelFab::NPossible_(){
+  bool first_run = true;
   int n_poss = 0;
+  int prev = 0;
   std::map<int, double>::const_iterator it;
   cyclus::CompMap goal = GoalCompMap_();
   for(it = goal.begin(); it != goal.end(); ++it){
@@ -544,9 +545,14 @@ int FCOFuelFab::NPossible_(){
         avail += processing_[Ready_()][*pref].quantity();
       }
     }
-    int prev = n_poss;
     int curr = int(std::floor(avail/amt));
-    n_poss = (prev > curr)? prev : curr;
+    if(first_run){
+      n_poss = curr;
+      first_run = false;
+    } else { 
+      prev = n_poss;
+      n_poss = (prev < curr)? prev : curr;
+    }
   }
   return n_poss;
 }
@@ -558,6 +564,7 @@ cyclus::Material::Ptr FCOFuelFab::CollapseBuff(cyclus::ResourceBuff to_collapse)
   using cyclus::ResCast;
   double qty =  to_collapse.quantity();
   Manifest manifest = to_collapse.PopQty(qty);
+
 
   Material::Ptr back = ResCast<Material>(manifest.back());
   while ( !manifest.empty() ){
@@ -574,17 +581,10 @@ void FCOFuelFab::MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff){
   using cyclus::ResCast;
 
   Material::Ptr soup = CollapseBuff(fabbed_fuel_buff);
-  while(!fabbed_fuel_buff.empty()){
-    Manifest manifest = fabbed_fuel_buff.PopQty(GoalCompMass_());
-    std::cout << "getting manifest back... " << std::endl;
-    Material::Ptr back = ResCast<Material>(manifest.back());
-    std::cout << "manifest has a back... " << std::endl;
-    manifest.pop_back();
-    while ( !manifest.empty() ){
-      back->Absorb(ResCast<Material>(manifest.back()));
-      manifest.pop_back();
-    }
-    stocks_[out_commod()].Push(back);
+  std::cout << "soup quantity: " << soup->quantity() << std::endl;
+  std::cout << "goal quantity: " << GoalCompMass_() << std::endl;
+  while(soup->quantity() > 0){
+    stocks_[out_commod()].Push(soup->ExtractComp(GoalCompMass_(), GoalComp_()));
   }
 }
 
@@ -594,19 +594,25 @@ void FCOFuelFab::FabFuel_(){
   using cyclus::ResourceBuff;
 
   int n = NPossible_();
+  if( n!=0 ){ 
+    std::map< int, std::set<std::string> >::const_iterator pref;
+    ResourceBuff fabbed_fuel_buff;
 
-  std::map< int, std::set<std::string> >::const_iterator pref;
-  ResourceBuff fabbed_fuel_buff;
-  for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
-    int iso = pref->first;
-    // here , you need to ADD to the fabbed fuel buff, not create a new one
-    fabbed_fuel_buff.PushAll(MeetNeed_(iso, n).PopQty(n*GoalCompMass_()));
-    std::cout << "met need " << std::endl;
+    for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
+      int iso = pref->first;
+      std::cout << "meeting need " << std::endl;
+      ResourceBuff to_add_buff = MeetNeed_(iso, n);
+      double qty = to_add_buff.quantity();
+      fabbed_fuel_buff.PushAll(to_add_buff.PopQty(qty));
+      std::cout << "met need " << std::endl;
+    }
+
+    std::cout << "moving to stocks" << std::endl;
+    std::cout << "fabbed fuel buff qty = " << fabbed_fuel_buff.quantity() << std::endl;
+    MoveToStocks_(fabbed_fuel_buff);
     std::cout << "moved to stocks" << std::endl;
+    LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
   }
-  MoveToStocks_(fabbed_fuel_buff);
-  LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
-
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

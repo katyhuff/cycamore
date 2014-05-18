@@ -229,7 +229,7 @@ TEST_F(FCOFuelFabTest, StartProcess) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, AddCommods) {
   using cyclus::Material;
-  double mat_size = 100; 
+  double mat_size = 100.0; 
   Material::Ptr mat = Material::CreateBlank(mat_size);
   // mat to add, commodity
   TestAddCommods(mat, in_c1, 1);
@@ -253,7 +253,7 @@ TEST_F(FCOFuelFabTest, AddCommods) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, CommodsInOut) {
   using cyclus::Material;
-  double mat_size = 100; 
+  double mat_size = 100.0; 
 
   TestBeginProcessing(0, 0, 0, in_c1);
   
@@ -265,8 +265,11 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0, in_c1);
   
-  TestFinishProcessing(1, 1);
-  //TestFinishProcessing(0, 2);
+  mat = Material::CreateBlank(mat_size * 2);
+  TestAddCommods(mat, in_c1, 1);
+  mat = Material::CreateBlank(mat_size * 2);
+  TestAddCommods(mat, in_c3, 1);
+  TestFinishProcessing(2, 0);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

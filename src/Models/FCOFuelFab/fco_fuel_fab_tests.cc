@@ -267,7 +267,7 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   TestAddCommods(mat, in_c3, 1);
   mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r3));
   TestAddCommods(mat, in_c3, 2);
-  //TestBeginProcessing(0, 3, 0,  in_c3);
+  TestBeginProcessing(0, 4, 0,  in_c3);
   //TestBeginProcessing(0, 2, 0,  in_c3);
   //TestFinishProcessing(1, 1);
 }

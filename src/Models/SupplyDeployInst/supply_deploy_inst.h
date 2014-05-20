@@ -3,6 +3,7 @@
 #define _SUPPLYDEPLOYINST_H
 
 #include "inst_model.h"
+#include "supply_demand_manager.h"
 
 #include <utility>
 #include <set>

@@ -2,6 +2,7 @@
 // Implements the SupplyDeployInst class
 
 #include "supply_deploy_inst.h"
+#include "supply_demand_manager.h"
 
 #include "error.h"
 

@@ -110,10 +110,23 @@ class SupplyDeployInst : public cyclus::InstModel {
   inline std::string rule_commod() const { return rule_commod_; } 
 
  protected:
+  /// manager for supply and demand
+  cyclus::SupplyDemandManager sdmanager_;
+
+  /// the list of facility prototypes to decommission
   std::string to_decomm_;
+
+  /// the name of the prototype to replace decommissioned facilities
   std::string replacement_;
+
+  /// the name of the commod of interest in this decommissioning rule
   std::string rule_commod_;
+
+  /// the key quantity demanded by the amount
   double rule_quantity_;
+
+  /// The number of replacement facilities that should be built when a facility 
+  /// is decommissioned 
   int repl_rate_;
 
   /* ------------------- */

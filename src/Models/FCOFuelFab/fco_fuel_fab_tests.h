@@ -55,9 +55,17 @@ class FCOFuelFabTest : public ::testing::Test {
   /// and the number of objects in stocks_ is n_stocks
   void TestBeginProcessing(int n_reserves, int n_processing, int n_stocks, std::string commod);
       
-  /// @brief calls _ and tests that the number of objects in processing_ is
+  /// @brief calls FabFuel_ and tests that the number of objects in processing_ is
   /// n_processing and the number of objects in stocks_ is n_stocks
   void TestFinishProcessing(int n_processing, int n_stocks);
+
+  /// @brief calls NPossible_ and tests that the number of possible assemblies 
+  /// is n_poss
+  void TestNPossible(int n_poss);
+
+  /// @brief calls CollapseBuff and tests that the resulting material is a sum 
+  /// of the buffer materials, with quantity qty..
+  void TestCollapseBuff(cyclus::ResourceBuff buff, double qty);
 };
 
 } // namespace cycamore

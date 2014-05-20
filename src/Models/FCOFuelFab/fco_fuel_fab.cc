@@ -249,7 +249,7 @@ void FCOFuelFab::Tock(int time) {
 
   std::vector<std::string>::const_iterator it;
   for (it = crctx_.in_commods().begin(); it != crctx_.in_commods().end(); it++){
-    while (processing_[Ready_()].count((*it)) > 0) {
+    while (NPossible_() > 0) {
       FabFuel_(); 
     }
   }
@@ -567,6 +567,7 @@ cyclus::Material::Ptr FCOFuelFab::CollapseBuff(cyclus::ResourceBuff to_collapse)
 
 
   Material::Ptr back = ResCast<Material>(manifest.back());
+  manifest.pop_back();
   while ( !manifest.empty() ){
     back->Absorb(ResCast<Material>(manifest.back()));
     manifest.pop_back();

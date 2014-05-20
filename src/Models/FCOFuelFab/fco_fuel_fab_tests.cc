@@ -59,21 +59,21 @@ void FCOFuelFabTest::InitParameters() {
   // recipes
   // sources for 92235
   cyclus::CompMap v;
-  v[92235] = 1;
-  cyclus::Composition::Ptr recipe = cyclus::Composition::CreateFromAtom(v);
+  v[92235] = 10;
+  cyclus::Composition::Ptr recipe = cyclus::Composition::CreateFromMass(v);
   tc_.get()->AddRecipe(in_r1, recipe);
   tc_.get()->AddRecipe(in_r2, recipe);
   // sources for 94240
   cyclus::CompMap w;
-  w[94240] = 2;
-  recipe = cyclus::Composition::CreateFromAtom(w);
+  w[94240] = 10;
+  recipe = cyclus::Composition::CreateFromMass(w);
   tc_.get()->AddRecipe(in_r3, recipe);
   tc_.get()->AddRecipe(in_r4, recipe);
   // goal recipe includes all the things.
   cyclus::CompMap y;
-  y[92235] = 1;
-  y[94240] = 2;
-  recipe = cyclus::Composition::CreateFromAtom(y);
+  y[92235] = 10;
+  y[94240] = 20;
+  recipe = cyclus::Composition::CreateFromMass(y);
   tc_.get()->AddRecipe(out_r1, recipe);
 }
 
@@ -111,6 +111,17 @@ void FCOFuelFabTest::TestFinishProcessing(int n_processing, int n_stocks) {
   src_facility->FabFuel_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_stocks, src_facility->StocksCount(in_c1));
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFabTest::TestNPossible(int n_poss) {
+  EXPECT_EQ(n_poss, src_facility->NPossible_());
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void FCOFuelFabTest::TestCollapseBuff(cyclus::ResourceBuff buff, double qty) {
+  cyclus::Material::Ptr mat = src_facility->CollapseBuff(buff);
+  EXPECT_EQ(qty, mat->quantity());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -229,7 +240,7 @@ TEST_F(FCOFuelFabTest, StartProcess) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, AddCommods) {
   using cyclus::Material;
-  double mat_size = 100.0; 
+  double mat_size = 10.0; 
   Material::Ptr mat = Material::CreateBlank(mat_size);
   // mat to add, commodity
   TestAddCommods(mat, in_c1, 1);
@@ -251,9 +262,38 @@ TEST_F(FCOFuelFabTest, AddCommods) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TEST_F(FCOFuelFabTest, NPossible) {
+  using cyclus::Material;
+  double mat_size = 10.0;
+
+  Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
+  TestAddCommods(mat, in_c1, 1);
+  TestBeginProcessing(0, 1, 0,  in_c1);
+  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
+  TestAddCommods(mat, in_c3, 1);
+  TestBeginProcessing(0, 2, 0,  in_c3);
+  TestNPossible(1);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TEST_F(FCOFuelFabTest, CollapseBuff) {
+  using cyclus::ResourceBuff;
+  using cyclus::Material;
+  double mat_size = 10.0;
+
+  Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
+  cyclus::ResourceBuff buff = ResourceBuff();
+  buff.Push(mat);
+  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
+  buff.Push(mat);
+
+  TestCollapseBuff(buff, 3*mat_size);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(FCOFuelFabTest, CommodsInOut) {
   using cyclus::Material;
-  double mat_size = 1000.0; 
+  double mat_size = 10.0; 
 
   TestBeginProcessing(0, 0, 0, in_c1);
 
@@ -263,13 +303,13 @@ TEST_F(FCOFuelFabTest, CommodsInOut) {
   mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0,  in_c1);
-  mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r3));
+  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
   TestAddCommods(mat, in_c3, 1);
-  mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r3));
+  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
   TestAddCommods(mat, in_c3, 2);
   TestBeginProcessing(0, 4, 0,  in_c3);
-  //TestBeginProcessing(0, 2, 0,  in_c3);
-  //TestFinishProcessing(1, 1);
+  TestNPossible(2);
+  TestFinishProcessing(0, 2);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

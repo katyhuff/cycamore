@@ -104,7 +104,7 @@ void FCOFuelFab::InitFrom(cyclus::QueryEngine* qe) {
   std::string out_c = outpair->GetElementContent("outcommodity");
   std::string out_r = outpair->GetElementContent("outrecipe");
   out_recipe_ = out_r;
-  out_commod_ = out_c;
+  out_commod(out_c);
   
   // in/out pair
   int npairs = qe->NElementsMatchingQuery("inpair");
@@ -576,16 +576,21 @@ cyclus::Material::Ptr FCOFuelFab::CollapseBuff(cyclus::ResourceBuff to_collapse)
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void FCOFuelFab::MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff){
+void FCOFuelFab::MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff, int n_poss){
   using cyclus::Manifest;
   using cyclus::Material;
   using cyclus::ResCast;
 
   Material::Ptr soup = CollapseBuff(fabbed_fuel_buff);
-  std::cout << "soup quantity: " << soup->quantity() << std::endl;
-  std::cout << "goal quantity: " << GoalCompMass_() << std::endl;
-  while(soup->quantity() > 0){
-    stocks_[out_commod()].Push(soup->ExtractComp(GoalCompMass_(), GoalComp_()));
+
+  for( int i=0; i<n_poss; ++i){
+    Material::Ptr goal_mat =  soup->ExtractComp(GoalCompMass_(), GoalComp_());
+    std::map< std::string, cyclus::ResourceBuff >::const_iterator found;
+    found = stocks_.find(out_commod());
+    if( found == stocks_.end() ) {
+      stocks_[out_commod()] = cyclus::ResourceBuff();
+    } 
+    stocks_[out_commod()].Push(goal_mat);
   }
 }
 
@@ -595,23 +600,18 @@ void FCOFuelFab::FabFuel_(){
   using cyclus::ResourceBuff;
 
   int n = NPossible_();
-  if( n!=0 ){ 
+  if( n > 0 ){ 
     std::map< int, std::set<std::string> >::const_iterator pref;
     ResourceBuff fabbed_fuel_buff;
 
     for(pref = prefs_.begin(); pref != prefs_.end(); ++pref){
       int iso = pref->first;
-      std::cout << "meeting need " << std::endl;
       ResourceBuff to_add_buff = MeetNeed_(iso, n);
       double qty = to_add_buff.quantity();
       fabbed_fuel_buff.PushAll(to_add_buff.PopQty(qty));
-      std::cout << "met need " << std::endl;
     }
 
-    std::cout << "moving to stocks" << std::endl;
-    std::cout << "fabbed fuel buff qty = " << fabbed_fuel_buff.quantity() << std::endl;
-    MoveToStocks_(fabbed_fuel_buff);
-    std::cout << "moved to stocks" << std::endl;
+    MoveToStocks_(fabbed_fuel_buff, n);
     LOG(cyclus::LEV_DEBUG2, "FCOFF") << "FCOFuelFab " << name() << " is fabricating fuel.";
   }
 }

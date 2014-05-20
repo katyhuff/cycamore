@@ -84,6 +84,7 @@ void FCOFuelFabTest::SetUpSourceFacility() {
   src_facility->prefs(iso_1, pref_1);
   src_facility->prefs(iso_2, pref_2);
   src_facility->out_recipe(out_r1);
+  src_facility->out_commod(out_c1);
 
   src_facility->AddCommodity(commodity);
   src_facility->cyclus::CommodityProducer::SetCapacity(commodity, capacity);
@@ -103,14 +104,17 @@ void FCOFuelFabTest::TestBeginProcessing(int n_reserves, int n_processing, int n
   src_facility->BeginProcessing_();
   EXPECT_EQ(n_reserves, src_facility->ReservesCount_(commod));
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
-  EXPECT_EQ(n_stocks, src_facility->StocksCount(commod));
+  EXPECT_EQ(n_stocks, src_facility->StocksCount());
+  EXPECT_EQ(n_stocks, src_facility->StocksCount(out_c1));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FCOFuelFabTest::TestFinishProcessing(int n_processing, int n_stocks) {
   src_facility->FabFuel_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
-  EXPECT_EQ(n_stocks, src_facility->StocksCount(in_c1));
+  EXPECT_EQ(n_stocks, src_facility->StocksCount());
+  EXPECT_EQ(n_stocks, src_facility->StocksCount(out_c1));
+  EXPECT_EQ(out_c1, src_facility->out_commod());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

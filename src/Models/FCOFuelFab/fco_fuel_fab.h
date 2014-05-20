@@ -290,7 +290,9 @@ class FCOFuelFab : public cyclus::FacilityModel,
 
   /// used by FabFuel_, this function moves ready fuel into the stocks in 
   /// chunks the size of the goal composition 
-  void MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff);
+  /// @param fabbed_fuel_buff is the ResourceBuff holding the materials
+  /// @param n_poss is the number of possible goal units in that material
+  void MoveToStocks_(cyclus::ResourceBuff fabbed_fuel_buff, int n_poss);
 
   /// used by FabFuel_, this function collapses all the materials in a resource 
   /// buffer into one material soup.

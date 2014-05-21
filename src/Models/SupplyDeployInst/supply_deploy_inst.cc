@@ -108,8 +108,9 @@ int SupplyDeployInst::NumToDecommission(int time) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 double SupplyDeployInst::QuantityAvailable(std::string commod){
   // ask the market how much was offered last month.
-  //return cyclus::Market(commod)->avail();
-  return 100.0; // @TODO this is obviously a placeholder
+  cyclus::Commodity commod_type = cyclus::Commodity(commod);
+  return sdmanager_.Supply(commod_type);
+  //return 100.0; // @TODO this is obviously a placeholder
 }
 
 /* ------------------- */

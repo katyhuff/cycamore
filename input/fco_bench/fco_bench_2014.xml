@@ -135,7 +135,7 @@
         </inpair>
         <outpair>
           <outcommodity>fresh_sfr_fuel</outcommodity>
-          <outrecipe>fresh_sfr_fuel_outrecipe</outrecipe>
+          <outrecipe>fresh_sfr_fuel_recipe</outrecipe>
         </outpair>
         <preflist>
           <prefiso>94240</prefiso>
@@ -223,11 +223,11 @@
           <incommodity>lwr_unf</incommodity>
           <inrecipe>lwr_unf_recipe</inrecipe>
           <outcommodity>lwr_unf_cool</outcommodity>
-          <outrecipe>lwr_unf_outrecipe</outrecipe>
+          <outrecipe>lwr_unf_recipe</outrecipe>
         </commod_pair>
         <processtime>48</processtime>
         <commodity_production>
-          <commodity>lwr_unf_outrecipe</commodity>
+          <commodity>lwr_unf_recipe</commodity>
           <capacity>1000.0</capacity>
           <cost>0.0</cost>
         </commodity_production>
@@ -245,7 +245,7 @@
           <incommodity>sfr_unf</incommodity>
           <inrecipe>sfr_unf_recipe</inrecipe>
           <outcommodity>sfr_unf_cool</outcommodity>
-          <outrecipe>sfr_unf_outrecipe</outrecipe>
+          <outrecipe>sfr_unf_recipe</outrecipe>
         </commod_pair>
         <processtime>12</processtime>
         <commodity_production>
@@ -269,11 +269,11 @@
         </inpair>
         <outpair>
           <outcommodity>rep_lwr_tru</outcommodity>
-          <outrecipe>rep_lwr_tru_outrecipe</outrecipe>
+          <outrecipe>rep_lwr_tru_recipe</outrecipe>
         </outpair>
         <outpair>
           <outcommodity>rep_lwr_u</outcommodity>
-          <outrecipe>rep_lwr_u_outrecipe</outrecipe>
+          <outrecipe>rep_lwr_u_recipe</outrecipe>
         </outpair>
         <processtime>0</processtime>
         <capacity>2000000</capacity>
@@ -298,11 +298,11 @@
         </inpair>
         <outpair>
           <outcommodity>rep_sfr_tru</outcommodity>
-          <outrecipe>rep_sfr_tru_outrecipe</outrecipe>
+          <outrecipe>rep_sfr_tru_recipe</outrecipe>
         </outpair>
         <outpair>
           <outcommodity>rep_sfr_u</outcommodity>
-          <outrecipe>rep_sfr_u_outrecipe</outrecipe>
+          <outrecipe>rep_sfr_u_recipe</outrecipe>
         </outpair>
         <processtime>0</processtime>
         <capacity>2000000</capacity>
@@ -351,7 +351,7 @@
       <availableprototype>LWRWetStorage</availableprototype>
       <availableprototype>SFRWetStorage</availableprototype>
       <availableprototype>LWRSeparations</availableprototype>
-      <availableprototype>LWRSeparations</availableprototype>
+      <availableprototype>SFRSeparations</availableprototype>
       <initialfacilitylist>
         <entry>
           <prototype>Mine</prototype>

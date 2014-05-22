@@ -262,19 +262,27 @@
   <facility>
     <name>LWRSeparations</name>
     <model>
-      <SeparationsFacility>
-        <input>
+      <SeparationsFac>
+        <inpair>
           <incommodity>lwr_unf_cool</incommodity>
-          <recipe>lwr_unf_recipe</recipe>
-        </input>
-        <output>
+          <inrecipe>lwr_unf_inrecipe</inrecipe>
+        </inpair>
+        <outpair>
           <outcommodity>rep_lwr_tru</outcommodity>
-          <recipe>rep_lwr_tru_recipe</recipe>
+          <outrecipe>rep_lwr_tru_outrecipe</outrecipe>
+        </outpair>
+        <outpair>
           <outcommodity>rep_lwr_u</outcommodity>
-          <recipe>rep_lwr_u_recipe</recipe>
-        </output>
+          <outrecipe>rep_lwr_u_outrecipe</outrecipe>
+        </outpair>
+        <processtime>0</processtime>
         <capacity>2000000</capacity>
-      </SeparationsFacility>
+        <commodity_production>
+          <commodity>rep_lwr_u</commodity>
+          <capacity>1000.0</capacity>
+          <cost>0.0</cost>
+        </commodity_production>
+      </SeparationsFac>
     </model>
     <incommodity>lwr_unf</incommodity>
     <outcommodity>lwr_unf_fuel</outcommodity>
@@ -283,19 +291,27 @@
   <facility>
     <name>SFRSeparations</name>
     <model>
-      <SeparationsFacility>
-        <input>
+      <SeparationsFac>
+        <inpair>
           <incommodity>sfr_unf_cool</incommodity>
-          <recipe>sfr_unf_recipe</recipe>
-        </input>
-        <output>
+          <inrecipe>sfr_unf_inrecipe</inrecipe>
+        </inpair>
+        <outpair>
           <outcommodity>rep_sfr_tru</outcommodity>
-          <recipe>rep_sfr_tru_recipe</recipe>
+          <outrecipe>rep_sfr_tru_outrecipe</outrecipe>
+        </outpair>
+        <outpair>
           <outcommodity>rep_sfr_u</outcommodity>
-          <recipe>rep_sfr_u_recipe</recipe>
-        </output>
+          <outrecipe>rep_sfr_u_outrecipe</outrecipe>
+        </outpair>
+        <processtime>0</processtime>
         <capacity>2000000</capacity>
-      </SeparationsFacility>
+        <commodity_production>
+          <commodity>rep_sfr_u</commodity>
+          <capacity>1000.0</capacity>
+          <cost>0.0</cost>
+        </commodity_production>
+      </SeparationsFac>
     </model>
     <incommodity>sfr_unf</incommodity>
     <outcommodity>sfr_unf_fuel</outcommodity>

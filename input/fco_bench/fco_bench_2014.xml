@@ -74,7 +74,7 @@
       <EnrichmentFacility>
         <input>
           <incommodity>nat_u</incommodity>
-          <inrecipe>nat_u</inrecipe>
+          <inrecipe>nat_u_recipe</inrecipe>
         </input>
         <output>
           <outcommodity>leu</outcommodity>
@@ -115,23 +115,23 @@
       <FCOFuelFab>
         <inpair>
           <incommodity>rep_sfr_tru</incommodity>
-          <inrecipe>rep_sfr_tru_inrecipe</inrecipe>
+          <inrecipe>rep_sfr_tru_recipe</inrecipe>
         </inpair>
         <inpair>
           <incommodity>rep_lwr_tru</incommodity>
-          <inrecipe>rep_lwr_tru_inrecipe</inrecipe>
+          <inrecipe>rep_lwr_tru_recipe</inrecipe>
         </inpair>
         <inpair>
           <incommodity>rep_sfr_u</incommodity>
-          <inrecipe>rep_sfr_u_inrecipe</inrecipe>
+          <inrecipe>rep_sfr_u_recipe</inrecipe>
         </inpair>
         <inpair>
           <incommodity>nat_u</incommodity>
-          <inrecipe>nat_u_inrecipe</inrecipe>
+          <inrecipe>nat_u_recipe</inrecipe>
         </inpair>
         <inpair>
           <incommodity>dep_u</incommodity>
-          <inrecipe>dep_u_inrecipe</inrecipe>
+          <inrecipe>dep_u_recipe</inrecipe>
         </inpair>
         <outpair>
           <outcommodity>fresh_sfr_fuel</outcommodity>
@@ -221,7 +221,7 @@
       <CommodConverter>
         <commod_pair>
           <incommodity>lwr_unf</incommodity>
-          <inrecipe>lwr_unf_inrecipe</inrecipe>
+          <inrecipe>lwr_unf_recipe</inrecipe>
           <outcommodity>lwr_unf_cool</outcommodity>
           <outrecipe>lwr_unf_outrecipe</outrecipe>
         </commod_pair>
@@ -243,7 +243,7 @@
       <CommodConverter>
         <commod_pair>
           <incommodity>sfr_unf</incommodity>
-          <inrecipe>sfr_unf_inrecipe</inrecipe>
+          <inrecipe>sfr_unf_recipe</inrecipe>
           <outcommodity>sfr_unf_cool</outcommodity>
           <outrecipe>sfr_unf_outrecipe</outrecipe>
         </commod_pair>
@@ -265,7 +265,7 @@
       <SeparationsFac>
         <inpair>
           <incommodity>lwr_unf_cool</incommodity>
-          <inrecipe>lwr_unf_inrecipe</inrecipe>
+          <inrecipe>lwr_unf_recipe</inrecipe>
         </inpair>
         <outpair>
           <outcommodity>rep_lwr_tru</outcommodity>
@@ -294,7 +294,7 @@
       <SeparationsFac>
         <inpair>
           <incommodity>sfr_unf_cool</incommodity>
-          <inrecipe>sfr_unf_inrecipe</inrecipe>
+          <inrecipe>sfr_unf_recipe</inrecipe>
         </inpair>
         <outpair>
           <outcommodity>rep_sfr_tru</outcommodity>

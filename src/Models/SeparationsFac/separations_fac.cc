@@ -463,15 +463,15 @@ cyclus::Composition::Ptr SeparationsFac::GoalComp_(std::string commod){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::CompMap SeparationsFac::GoalCompMap_(){
-  return GoalComp_()->mass();
+cyclus::CompMap SeparationsFac::GoalCompMap_(std::string commod){
+  return GoalComp_(commod)->mass();
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-double SeparationsFac::GoalCompMass_(){
+double SeparationsFac::GoalCompMass_(std::string commod){
   double amt = 0;
   std::map<int, double>::const_iterator it;
-  cyclus::CompMap goal = GoalCompMap_();
+  cyclus::CompMap goal = GoalCompMap_(commod);
   for(it=goal.begin(); it!=goal.end(); ++it){
     amt += it->second;
   }
@@ -481,7 +481,7 @@ double SeparationsFac::GoalCompMass_(){
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::ResourceBuff SeparationsFac::MeetNeed_(int iso, int n){
   cyclus::ResourceBuff iso_source_buff =  cyclus::ResourceBuff(); 
-  double need = n*GoalCompMap_()[iso];
+  double need = n*GoalCompMap_(commod)[iso];
   std::set<std::string>::const_iterator pref;
   std::set<std::string> preflist = prefs(iso);
   for(pref = preflist.begin(); pref != preflist.end(); ++pref){

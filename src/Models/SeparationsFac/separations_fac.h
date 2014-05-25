@@ -272,13 +272,16 @@ class SeparationsFac : public cyclus::FacilityModel,
   void EndLife_();
   
   /// @brief calculates the total mass of the goal material composition [kg]
-  double GoalCompMass_();
+  /// @param commod specifies the associated commod type
+  double GoalCompMass_(std::string commod);
 
   /// @brief calculates goal material composition
-  cyclus::CompMap GoalCompMap_();
+  /// @param commod specifies the associated commod type
+  cyclus::CompMap GoalCompMap_(std::string commod);
 
   /// @brief calculates goal material composition
-  cyclus::Composition::Ptr GoalComp_();
+  /// @param commod specifies the associated commod type
+  cyclus::Composition::Ptr GoalComp_(std::string commod);
 
   /// @brief sorts through the processing buffer to meet the need 
   /// @param iso the isotope which is needed

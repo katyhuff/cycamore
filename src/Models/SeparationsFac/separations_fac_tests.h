@@ -20,7 +20,8 @@ class SeparationsFacTest : public ::testing::Test {
 
   // init params
   std::string in_c1, out_c1, out_c2, out_c3;
-  std::string in_r1, out_z1, out_z2, out_z3;
+  std::string in_r1;
+  int out_z1, out_z2, out_z3;
   cyclus::CommodityRecipeContext crctx;
   std::set<std::string> out_commods;
   std::set<int> out_elems;

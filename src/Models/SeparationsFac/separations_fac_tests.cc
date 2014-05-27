@@ -33,19 +33,16 @@ void SeparationsFacTest::InitParameters() {
   out_c2 = "sep_pu";
   out_c3 = "sep_am";
   in_r1 = "in_r1";
-  out_z1 = "92";
-  out_z2 = "94";
-  out_z3 = "95";
-  crctx.AddInCommod(in_c1, in_r1, out_c1, out_z1);
-  crctx.AddInCommod(in_c1, in_r1, out_c2, out_z2);
-  crctx.AddInCommod(in_c1, in_r1, out_c3, out_z3);
+  out_z1 = 92;
+  out_z2 = 94;
+  out_z3 = 95;
 
   out_commods.insert(out_c1);
   out_commods.insert(out_c2);
   out_commods.insert(out_c3);
-  out_elems.insert(boost::lexical_cast<int>(out_z1));
-  out_elems.insert(boost::lexical_cast<int>(out_z2));
-  out_elems.insert(boost::lexical_cast<int>(out_z3));
+  out_elems.insert(out_z1);
+  out_elems.insert(out_z2);
+  out_elems.insert(out_z3);
 
   process_time = 0;
   
@@ -94,22 +91,10 @@ void SeparationsFacTest::TestBeginProcessing(int n_reserves, int n_processing, i
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SeparationsFacTest::TestFinishProcessing(int n_processing, int n_stocks) {
-  src_facility->Separate_();
+  src_facility->Separate_(out_c1);
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_stocks, src_facility->StocksCount());
   EXPECT_EQ(n_stocks, src_facility->StocksCount(out_c1));
-  EXPECT_EQ(out_c1, src_facility->out_commod());
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SeparationsFacTest::TestNPossible(int n_poss) {
-  EXPECT_EQ(n_poss, src_facility->NPossible_());
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SeparationsFacTest::TestCollapseBuff(cyclus::ResourceBuff buff, double qty) {
-  cyclus::Material::Ptr mat = src_facility->CollapseBuff(buff);
-  EXPECT_EQ(qty, mat->quantity());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,8 +108,9 @@ void SeparationsFacTest::TestInitState(SeparationsFac* fac) {
   EXPECT_TRUE(fac->ProducesCommodity(commod));
   EXPECT_EQ(capacity, fac->ProductionCapacity(commod));
   EXPECT_EQ(cost, fac->ProductionCost(commod));
-  EXPECT_EQ(pref_1, fac->prefs(iso_1));
-  EXPECT_EQ(pref_2, fac->prefs(iso_2));
+  EXPECT_EQ(out_z1, fac->out_elem(out_c1));
+  EXPECT_EQ(out_z2, fac->out_elem(out_c2));
+  EXPECT_EQ(out_z3, fac->out_elem(out_c3));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -185,8 +171,10 @@ TEST_F(SeparationsFacTest, Print) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(SeparationsFacTest, OutRecipe) {
-  EXPECT_EQ("out_z1", src_facility->out_elem());
+TEST_F(SeparationsFacTest, OutElems) {
+  EXPECT_EQ(out_z1, src_facility->out_elem(out_c1));
+  EXPECT_EQ(out_z2, src_facility->out_elem(out_c2));
+  EXPECT_EQ(out_z3, src_facility->out_elem(out_c3));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -226,38 +214,6 @@ TEST_F(SeparationsFacTest, AddCommods) {
   
   mat = Material::CreateBlank(mat_size - (1 + cyclus::eps()));
   TestAddCommods(mat, in_c1, 5);
-
-  TestAddCommods(mat, in_c2, 1);
-  
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(SeparationsFacTest, NPossible) {
-  using cyclus::Material;
-  double mat_size = 10.0;
-
-  Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
-  TestAddCommods(mat, in_c1, 1);
-  TestBeginProcessing(0, 1, 0,  in_c1);
-  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
-  TestAddCommods(mat, in_c3, 1);
-  TestBeginProcessing(0, 2, 0,  in_c3);
-  TestNPossible(1);
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEST_F(SeparationsFacTest, CollapseBuff) {
-  using cyclus::ResourceBuff;
-  using cyclus::Material;
-  double mat_size = 10.0;
-
-  Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
-  cyclus::ResourceBuff buff = ResourceBuff();
-  buff.Push(mat);
-  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
-  buff.Push(mat);
-
-  TestCollapseBuff(buff, 3*mat_size);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -270,16 +226,10 @@ TEST_F(SeparationsFacTest, CommodsInOut) {
   Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 1, 0,  in_c1);
-  mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
+  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0,  in_c1);
-  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
-  TestAddCommods(mat, in_c3, 1);
-  mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r3));
-  TestAddCommods(mat, in_c3, 2);
-  TestBeginProcessing(0, 4, 0,  in_c3);
-  TestNPossible(2);
-  TestFinishProcessing(0, 2);
+  TestFinishProcessing(0, 6);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

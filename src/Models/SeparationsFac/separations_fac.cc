@@ -107,6 +107,7 @@ void SeparationsFac::InitFrom(cyclus::QueryEngine* qe) {
     // also add to sets
     out_commods_.insert(out_c);
     out_elems_.insert(out_z);
+    crctx_.AddInCommod(in_c, in_r, out_c, in_r); // this demonstrates brokenness of crctx
   }
 
   // facility data required

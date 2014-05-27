@@ -29,30 +29,27 @@ void SeparationsFacTest::TearDown() {
 void SeparationsFacTest::InitParameters() {
   // init params
   in_c1 = "in_c1";
-  in_c2 = "in_c2";
-  in_c3 = "in_c3";
-  in_c4 = "in_c4";
-  out_c1 = "out_c1";
+  out_c1 = "sep_u";
+  out_c2 = "sep_pu";
+  out_c3 = "sep_am";
   in_r1 = "in_r1";
-  in_r2 = "in_r2";
-  in_r3 = "in_r3";
-  in_r4 = "in_r4";
-  out_r1 = "out_r1";
-  crctx.AddInCommod(in_c1, in_r1, out_c1, out_r1);
-  crctx.AddInCommod(in_c2, in_r2, out_c1, out_r1);
-  crctx.AddInCommod(in_c3, in_r3, out_c1, out_r1);
-  crctx.AddInCommod(in_c4, in_r4, out_c1, out_r1);
+  out_z1 = "92";
+  out_z2 = "94";
+  out_z3 = "95";
+  crctx.AddInCommod(in_c1, in_r1, out_c1, out_z1);
+  crctx.AddInCommod(in_c1, in_r1, out_c2, out_z2);
+  crctx.AddInCommod(in_c1, in_r1, out_c3, out_z3);
 
-  iso_1 = 92235;
-  pref_1.insert(in_c1);
-  pref_1.insert(in_c2);
-  iso_2 = 94240;
-  pref_2.insert(in_c3);
-  pref_2.insert(in_c4);
-  
+  out_commods.insert(out_c1);
+  out_commods.insert(out_c2);
+  out_commods.insert(out_c3);
+  out_elems.insert(boost::lexical_cast<int>(out_z1));
+  out_elems.insert(boost::lexical_cast<int>(out_z2));
+  out_elems.insert(boost::lexical_cast<int>(out_z3));
+
   process_time = 0;
   
-  commodity = out_c1;
+  commodity = "swu";
   capacity = 200;
   cost = capacity;
   
@@ -60,31 +57,18 @@ void SeparationsFacTest::InitParameters() {
   // sources for 92235
   cyclus::CompMap v;
   v[92235] = 10;
+  v[94240] = 10;
+  v[95241] = 10;
   cyclus::Composition::Ptr recipe = cyclus::Composition::CreateFromMass(v);
   tc_.get()->AddRecipe(in_r1, recipe);
-  tc_.get()->AddRecipe(in_r2, recipe);
-  // sources for 94240
-  cyclus::CompMap w;
-  w[94240] = 10;
-  recipe = cyclus::Composition::CreateFromMass(w);
-  tc_.get()->AddRecipe(in_r3, recipe);
-  tc_.get()->AddRecipe(in_r4, recipe);
-  // goal recipe includes all the things.
-  cyclus::CompMap y;
-  y[92235] = 10;
-  y[94240] = 20;
-  recipe = cyclus::Composition::CreateFromMass(y);
-  tc_.get()->AddRecipe(out_r1, recipe);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SeparationsFacTest::SetUpSourceFacility() {
   src_facility->crctx(crctx);
   src_facility->process_time(process_time);
-  src_facility->prefs(iso_1, pref_1);
-  src_facility->prefs(iso_2, pref_2);
-  src_facility->out_recipe(out_r1);
-  src_facility->out_commod(out_c1);
+  src_facility->out_elems(out_elems);
+  src_facility->out_commods(out_commods);
 
   src_facility->AddCommodity(commodity);
   src_facility->cyclus::CommodityProducer::SetCapacity(commodity, capacity);
@@ -159,32 +143,14 @@ TEST_F(SeparationsFacTest, XMLInit) {
      << "    <incommodity>" << in_c1 << "</incommodity>"
      << "    <inrecipe>" << in_r1 << "</inrecipe>"
      << "  </inpair>"
-     << "  <inpair>"
-     << "    <incommodity>" << in_c2 << "</incommodity>"
-     << "    <inrecipe>" << in_r2 << "</inrecipe>"
-     << "  </inpair>"
-     << "  <inpair>"
-     << "    <incommodity>" << in_c3 << "</incommodity>"
-     << "    <inrecipe>" << in_r3 << "</inrecipe>"
-     << "  </inpair>"
-     << "  <inpair>"
-     << "    <incommodity>" << in_c4 << "</incommodity>"
-     << "    <inrecipe>" << in_r4 << "</inrecipe>"
-     << "  </inpair>"
      << "  <outpair>"
      << "    <outcommodity>" << out_c1 << "</outcommodity>"
-     << "    <outrecipe>" << out_r1 << "</outrecipe>"
+     << "    <outrecipe>" << out_z1 << "</outrecipe>"
      << "  </outpair>"
-     << "  <preflist>"
-     << "    <prefiso>" << iso_1 << "</prefiso>"
-     << "    <sourcecommod>" << in_c1 << "</sourcecommod>"
-     << "    <sourcecommod>" << in_c2 << "</sourcecommod>"
-     << "  </preflist>"
-     << "  <preflist>"
-     << "    <prefiso>" << iso_2 << "</prefiso>"
-     << "    <sourcecommod>" << in_c3 << "</sourcecommod>"
-     << "    <sourcecommod>" << in_c4 << "</sourcecommod>"
-     << "  </preflist>"
+     << "  <outpair>"
+     << "    <outcommodity>" << out_c2 << "</outcommodity>"
+     << "    <outrecipe>" << out_z2 << "</outrecipe>"
+     << "  </outpair>"
      << "  <processtime>" << process_time << "</processtime>"
      << "  <capacity>" << capacity << "</capacity>"
      << "  <commodity_production>"
@@ -220,7 +186,7 @@ TEST_F(SeparationsFacTest, Print) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, OutRecipe) {
-  EXPECT_EQ("out_r1", src_facility->out_recipe());
+  EXPECT_EQ("out_z1", src_facility->out_elem());
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

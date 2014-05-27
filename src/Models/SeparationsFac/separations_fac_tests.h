@@ -19,11 +19,11 @@ class SeparationsFacTest : public ::testing::Test {
   SeparationsFac* src_facility;
 
   // init params
-  std::string in_c1, in_c2, in_c3, in_c4, out_c1;
-  std::string in_r1, in_r2, in_r3, in_r4, out_r1;
-  int iso_1, iso_2;
-  std::set<std::string> pref_1, pref_2;
+  std::string in_c1, out_c1, out_c2, out_c3;
+  std::string in_r1, out_z1, out_z2, out_z3;
   cyclus::CommodityRecipeContext crctx;
+  std::set<std::string> out_commods;
+  std::set<int> out_elems;
 
   int process_time;
 

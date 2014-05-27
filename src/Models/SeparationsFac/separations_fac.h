@@ -182,12 +182,6 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @return the total number of commods in processing
   int ProcessingCount_();
 
-  /// @return the number of a specific commod in processing
-  int ProcessingCount_(std::string commod);
-
-  /// @return the total amt of commods in processing
-  int ProcessingQty_();
-
   /// @return the total quantity of all commods in reserves
   int ReservesCount_();
 
@@ -207,9 +201,13 @@ class SeparationsFac : public cyclus::FacilityModel,
   inline void process_time(int t) { process_time_ = t; }
   inline int process_time() const { return process_time_; }
 
-  /// @brief out recipes
-  inline void out_recipes(std::set<std::string> s){ out_recipes_ = s; }
-  inline std::set<std::string> out_recipes() const { return out_recipes_; }
+  /// @brief element associated with a commod
+  /// @param commod the commod associated with the element
+  int out_elem(std::string commod) const;
+
+  /// @brief outgoing elements
+  inline void out_elems(std::set<int> z){ out_elems_ = z; }
+  inline std::set<int> out_elems() const { return out_elems_; }
   
   /// @brief out commods
   inline void out_commods(std::set<std::string> s) { out_commods_ = s; }
@@ -250,8 +248,8 @@ class SeparationsFac : public cyclus::FacilityModel,
       cyclus::ResourceBuff* buffer);
   
   /// @brief a cyclus::ResourceBuff for material while they are processing
-  /// there is one processing buffer for each processing start time and incommod
-  std::map<int, std::map< std::string, cyclus::ResourceBuff > > processing_;
+  /// there is one processing buffer for each processing start time
+  std::map<int, cyclus::ResourceBuff > processing_;
 
   /// @brief a cyclus::ResourceBuff for material once they are done processing.
   /// there is one stocks for each outcommodity
@@ -271,28 +269,11 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @TODO check that this does the right stuff.
   void EndLife_();
   
-  /// @brief calculates the total mass of the goal material composition [kg]
-  /// @param commod specifies the associated commod type
-  double GoalCompMass_(std::string commod);
-
-  /// @brief calculates goal material composition
-  /// @param commod specifies the associated commod type
-  cyclus::CompMap GoalCompMap_(std::string commod);
-
-  /// @brief calculates goal material composition
-  /// @param commod specifies the associated commod type
-  cyclus::Composition::Ptr GoalComp_(std::string commod);
-
-  /// @brief sorts through the processing buffer to meet the need 
-  /// @param iso the isotope which is needed
-  /// @return the number of possible separated mats
-  cyclus::ResourceBuff MeetNeed_(int iso, int n);
-
-  /// used by Separate_, this function moves ready mats into the stocks in 
-  /// chunks the size of the goal composition 
-  /// @param sep_mat_buff is the ResourceBuff holding the materials
-  /// @param n_poss is the number of possible goal units in that material
-  void MoveToStocks_(cyclus::ResourceBuff sep_mat_buff, int n_poss);
+  /// @brief determines the possible amount to separate
+  /// @param z is the desired element to separate
+  /// @param comp is the initial composition
+  /// @return this returns the quantity and the composition to remove for separation
+  std::pair<double, cyclus::Composition::Ptr> CompPossible_(int z, cyclus::CompMap comp);
 
   /// @brief conducts the separation step, separating as much material as 
   /// possible.
@@ -322,10 +303,12 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @brief the names of the incoming commod
   std::string in_commod_;
 
-  /// @brief the names of the goal recipes
-  std::set<std::string> out_recipes_;
+  /// @brief the names of the goal elements
+  std::set<int> out_elems_;
   /// @brief the names of the goal commods
   std::set<std::string> out_commods_;
+  /// @brief the names of the goal commods and elements, paired appropriately
+  std::map<std::string, int> out_commod_elem_map_;
 
   /// @brief the commodity recipe context keeping track of the commods/recipes
   cyclus::CommodityRecipeContext crctx_;

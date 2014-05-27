@@ -46,7 +46,9 @@ std::string SeparationsFac::schema() {
       "  <oneOrMore>                                 \n"
       "  <element name=\"outpair\">                  \n"
       "   <ref name=\"outcommodity\"/>               \n"
-      "   <ref name=\"outrecipe\"/>                  \n"
+      "   <element name=\"z\">                       \n"
+      "     <data type=\"integer\"/>                 \n"
+      "   </element>                                 \n"
       "  </element>                                  \n"
       "  </oneOrMore>                                \n"
       "                                              \n"
@@ -99,8 +101,12 @@ void SeparationsFac::InitFrom(cyclus::QueryEngine* qe) {
   for (int i = 0; i < npairs; ++i) {
     QueryEngine* outpair = qe->QueryElement("outpair", i);
     std::string out_c = outpair->GetElementContent("outcommodity");
-    std::string out_r = outpair->GetElementContent("outrecipe");
-    crctx_.AddInCommod(in_c, in_r, out_c, out_r);
+    int out_z = lexical_cast<int>(outpair->GetElementContent("z"));
+    // add to map
+    out_commod_elem_map_.insert(make_pair(out_c, out_z));
+    // also add to sets
+    out_commods_.insert(out_c);
+    out_elems_.insert(out_z);
   }
 
   // facility data required
@@ -137,7 +143,7 @@ void SeparationsFac::InitFrom(SeparationsFac* m) {
   
   // in/out commodity & resource context
   crctx_ = m->crctx_;
-  out_recipes(m->out_recipes());
+  out_elems(m->out_elems());
   out_commods(m->out_commods());
   in_recipe(m->in_recipe());
   in_commod(m->in_commod());
@@ -368,32 +374,12 @@ void SeparationsFac::GetMatlTrades(
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int SeparationsFac::ProcessingQty_() {
-  double amt = 0;
-  std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
-  for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
-    amt += it->second.quantity();
-  }
-  return amt;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int SeparationsFac::ProcessingCount_() {
   int count = 0;
-  std::map< std::string, cyclus::ResourceBuff >::const_iterator it;
-  for(it = processing_[Ready_()].begin(); it != processing_[Ready_()].end(); ++it) {
-    count += it->second.count();
-  }
-  return count;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-int SeparationsFac::ProcessingCount_(std::string commod) {
-  int count = 0;
-  std::map<std::string, cyclus::ResourceBuff>::iterator it;
-  it = processing_[Ready_()].find(commod);
-  if ( it!=processing_[Ready_()].end() ) {
-    count = it->second.count();
+  std::map<int, cyclus::ResourceBuff>::const_iterator found;
+  found = processing_.find(Ready_());
+  if( found != processing_.end()) {
+    count = processing_[Ready_()].count();
   }
   return count;
 }
@@ -417,6 +403,20 @@ int SeparationsFac::StocksCount(std::string commod) {
     count = it->second.count();
   }
   return count;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int SeparationsFac::out_elem(std::string commod) const {
+  // get the commodity index
+  std::map<std::string, int>::const_iterator found;
+  found = out_commod_elem_map_.find(commod);
+  if( found!=out_commod_elem_map_.end()){
+    return found->second;
+  } else {
+    std::string e = "SepFac: Invalid commodity. There is no element associated with : ";
+    e+=commod;
+    throw cyclus::ValueError(e);
+  }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -446,7 +446,7 @@ void SeparationsFac::BeginProcessing_() {
   for (it = reserves_.begin(); it != reserves_.end(); ++it){
     while (!(*it).second.empty()){
       try {
-        processing_[context()->time()][(*it).first].Push((*it).second.Pop());
+        processing_[context()->time()].Push((*it).second.Pop());
       } catch(cyclus::Error& e) {
         e.msg(Model::InformErrorMsg(e.msg()));
         throw e;
@@ -456,97 +456,47 @@ void SeparationsFac::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::Composition::Ptr SeparationsFac::GoalComp_(std::string commod){
-  std::string out = out_recipe(commod);
-  cyclus::Composition::Ptr recipe = context()->GetRecipe(out);
-  return recipe;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::CompMap SeparationsFac::GoalCompMap_(std::string commod){
-  return GoalComp_(commod)->mass();
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-double SeparationsFac::GoalCompMass_(std::string commod){
+std::pair<double, cyclus::Composition::Ptr> SeparationsFac::CompPossible_(int z, cyclus::CompMap comp){
+  std::map<int, double>::const_iterator entry;
+  int iso;
   double amt = 0;
-  std::map<int, double>::const_iterator it;
-  cyclus::CompMap goal = GoalCompMap_(commod);
-  for(it=goal.begin(); it!=goal.end(); ++it){
-    amt += it->second;
+  cyclus::CompMap to_ret;
+  for(entry = comp.begin(); entry != comp.end(); ++entry){
+    iso = entry->first;
+    if (int(iso/1000.0) == z){
+      to_ret.insert(std::make_pair(iso,entry->second));
+      amt += entry->second;
+    }
   }
-  return amt;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cyclus::ResourceBuff SeparationsFac::MeetNeed_(int iso, int n){
-  cyclus::ResourceBuff iso_source_buff =  cyclus::ResourceBuff(); 
-  double need = n*GoalCompMap_(commod)[iso];
-  std::set<std::string>::const_iterator pref;
-  std::set<std::string> preflist = prefs(iso);
-  for(pref = preflist.begin(); pref != preflist.end(); ++pref){
-      double avail = processing_[Ready_()][*pref].quantity();
-      double diff = need - avail;
-      if( need > 0 && need > avail ){
-        iso_source_buff.PushAll(processing_[Ready_()][*pref].PopQty(avail));
-        need = diff;
-      } else if ( need > 0 && need <= avail ){
-        iso_source_buff.PushAll(processing_[Ready_()][*pref].PopQty(need));
-        need = 0;
-      }
-  }
-  return iso_source_buff;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SeparationsFac::MoveToStocks_(cyclus::ResourceBuff sep_mat_buff, std::string out_commod){
-  using cyclus::Manifest;
-  using cyclus::Material;
-  using cyclus::ResCast;
-
-  for( int i=0; i<n_poss; ++i){
-    Material::Ptr goal_mat =  soup->ExtractComp(GoalCompMass_(), GoalComp_());
-    std::map< std::string, cyclus::ResourceBuff >::const_iterator found;
-    found = stocks_.find(out_commod());
-    if( found == stocks_.end() ) {
-      stocks_[out_commod] = cyclus::ResourceBuff();
-    } 
-    stocks_[out_commod].Push(goal_mat);
-  }
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-double SeparationsFac::QtyPossible(cyclus::Material::Ptr mat, cyclus::Composition::Ptr comp){
-  using cyclus::Composition;
-  CompMap mat_comp = mat->comp()->mass();
-  for iso in comp->Normalized() { 
-    double avail = mat_comp[iso];
-    double needed = comp[iso];
-  }
+  return std::make_pair(amt, cyclus::Composition::CreateFromMass(to_ret));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SeparationsFac::Separate_(std::string out_commod){
   using cyclus::Material;
   using cyclus::ResourceBuff;
+  using cyclus::Composition;
 
-    std::map< int, std::set<std::string> >::const_iterator pref;
-    ResourceBuff sep_mat_buff;
+  // get z
+  int z = out_elem(out_commod);
 
-    Material::Ptr mat = processing_[Ready_()].Pop()
-    double qty = QtyPossible(mat, comp); 
-    comp = ctx->get_recipe(out_commod);
-    stocks_[out_commod].Push(mat->ExtractComp(qty, comp));
-    remainder.Push(mat);
-      int iso = pref->first;
-      ResourceBuff to_add_buff = MeetNeed_(iso, n);
-      double qty = to_add_buff.quantity();
-      sep_mat_buff.PushAll(to_add_buff.PopQty(qty));
-    }
+  // separate
+  Material::Ptr mat = cyclus::ResCast<Material>(processing_[Ready_()].Pop());
+  std::pair<double, Composition::Ptr> poss = CompPossible_(z, mat->comp()->mass()); 
+  double poss_qty = poss.first;
+  Composition::Ptr poss_comp = poss.second;
 
-    MoveToStocks_(sep_mat_buff, n);
-    LOG(cyclus::LEV_DEBUG2, "SEPSF") << "SeparationsFac " << name() << " is separating material.";
-  }
+  // move to stocks
+  std::map< std::string, cyclus::ResourceBuff >::const_iterator found;
+  found = stocks_.find(out_commod);
+  if( found == stocks_.end() ) {
+    stocks_[out_commod] = cyclus::ResourceBuff();
+  } 
+  stocks_[out_commod].Push(mat->ExtractComp(poss_qty, poss_comp));
+
+  processing_[Ready_()].Push(mat);
+
+  LOG(cyclus::LEV_DEBUG2, "SEPSF") << "SeparationsFac " << name() << " is separating material.";
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -580,7 +530,7 @@ SeparationsFac::GetOrder_(double size) {
   
   RequestPortfolio<Material>::Ptr port(new RequestPortfolio<Material>());
   
-  const std::vector<std::string>& commods = crctx_.in_commods();
+  const std::vector<std::string>& commods = in_commods();
   std::vector<std::string>::const_iterator it;
   std::string recipe;
   Material::Ptr mat;

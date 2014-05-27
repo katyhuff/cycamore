@@ -487,9 +487,7 @@ void SeparationsFac::Separate_(std::string out_commod){
  
   // get separation goal
   int n = ProcessingCount_();
-  std::cout<< n << std::endl;
   for( int i = 0; i < n; ++i ){
-    std::cout<< i << std::endl;
     Material::Ptr mat = cyclus::ResCast<Material>(processing_[Ready_()].Pop());
     std::pair<double, Composition::Ptr> poss = CompPossible_(z, mat->comp()->mass()); 
     double poss_qty = poss.first;

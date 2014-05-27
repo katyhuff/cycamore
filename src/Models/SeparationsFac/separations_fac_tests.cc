@@ -94,7 +94,7 @@ void SeparationsFacTest::TestBeginProcessing(int n_reserves, int n_processing, i
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SeparationsFacTest::TestFinishProcessing(int n_processing, int n_stocks) {
-  src_facility->FabFuel_();
+  src_facility->Separate_();
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_stocks, src_facility->StocksCount());
   EXPECT_EQ(n_stocks, src_facility->StocksCount(out_c1));

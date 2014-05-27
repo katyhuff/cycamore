@@ -296,7 +296,6 @@ class SeparationsFac : public cyclus::FacilityModel,
   int process_time_;
   double capacity_;
   Phase phase_;
-  std::map< int, std::set< std::string > > prefs_;
 
   /// @brief the names of the incoming recipe
   std::string in_recipe_;

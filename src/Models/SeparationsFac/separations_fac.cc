@@ -506,21 +506,6 @@ int SeparationsFac::Ready_(){
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::set<std::string> SeparationsFac::prefs(int iso){
-  std::set<std::string> preflist;
-  std::map<int, std::set<std::string > >::const_iterator it;
-  it = prefs_.find(iso);
-  if(it != prefs_.end()){
-    preflist = it->second;
-  } else { 
-    std::string e = "SepFac: Invalid pref iso. There is no source named for the iso: ";
-    e+=std::to_string(iso);
-    throw cyclus::ValueError(e);
-  }
-  return preflist;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cyclus::RequestPortfolio<cyclus::Material>::Ptr
 SeparationsFac::GetOrder_(double size) {
   using cyclus::CapacityConstraint;
@@ -530,22 +515,17 @@ SeparationsFac::GetOrder_(double size) {
   
   RequestPortfolio<Material>::Ptr port(new RequestPortfolio<Material>());
   
-  const std::vector<std::string>& commods = in_commods();
-  std::vector<std::string>::const_iterator it;
   std::string recipe;
   Material::Ptr mat;
-  for (it = commods.begin(); it != commods.end(); ++it) {
-    recipe = crctx_.in_recipe(*it);
-    assert(recipe != "");
-    mat =
-        Material::CreateUntracked(size, context()->GetRecipe(recipe));
-    port->AddRequest(mat, this, *it);
-    
-    LOG(cyclus::LEV_DEBUG3, "SEPSF") << "SeparationsFac " << name()
-                                      << " is making an order:";
-    LOG(cyclus::LEV_DEBUG3, "SEPSF") << "          size: " << size;
-    LOG(cyclus::LEV_DEBUG3, "SEPSF") << "     commodity: " << *it;
-  }
+  recipe = crctx_.in_recipe(in_commod());
+  assert(recipe != "");
+  mat = Material::CreateUntracked(size, context()->GetRecipe(recipe));
+  port->AddRequest(mat, this, in_commod());
+  
+  LOG(cyclus::LEV_DEBUG3, "SEPSF") << "SeparationsFac " << name()
+                                    << " is making an order:";
+  LOG(cyclus::LEV_DEBUG3, "SEPSF") << "          size: " << size;
+  LOG(cyclus::LEV_DEBUG3, "SEPSF") << "     commodity: " << in_commod();
 
   CapacityConstraint<Material> cc(size);
   port->AddConstraint(cc);

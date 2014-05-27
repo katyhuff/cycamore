@@ -113,11 +113,8 @@ void SeparationsFacTest::TestInitState(SeparationsFac* fac) {
   EXPECT_EQ(capacity, fac->ProductionCapacity(commod));
   EXPECT_EQ(cost, fac->ProductionCost(commod));
   EXPECT_EQ(out_z1, fac->out_elem(out_c1));
-  std::cout<< out_z1 << std::endl;
   EXPECT_EQ(out_z2, fac->out_elem(out_c2));
-  std::cout<< out_z2 << std::endl;
   EXPECT_EQ(out_z3, fac->out_elem(out_c3));
-  std::cout<< out_z3 << std::endl;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

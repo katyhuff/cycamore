@@ -62,13 +62,8 @@ class SeparationsFacTest : public ::testing::Test {
   /// out commod is the commodity to separate
   void TestFinishProcessing(int n_processing, int n_stocks, std::string out_commod);
 
-  /// @brief calls NPossible_ and tests that the number of possible assemblies 
-  /// is n_poss
-  void TestNPossible(int n_poss);
-
-  /// @brief calls CollapseBuff and tests that the resulting material is a sum 
-  /// of the buffer materials, with quantity qty..
-  void TestCollapseBuff(cyclus::ResourceBuff buff, double qty);
+  /// @brief called CompPossible and checks that the comp_out is the result 
+  void TestCompPossible(int z, cyclus::CompMap comp_in, cyclus::CompMap comp_out, double amt);
 };
 
 } // namespace cycamore

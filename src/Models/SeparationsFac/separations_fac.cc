@@ -457,7 +457,7 @@ void SeparationsFac::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::pair<double, cyclus::Composition::Ptr> SeparationsFac::CompPossible_(int z, cyclus::CompMap comp){
+std::pair<double, cyclus::Composition::Ptr> const SeparationsFac::CompPossible_(int z, cyclus::CompMap comp) {
   cyclus::CompMap::const_iterator entry;
   int iso;
   double amt = 0;
@@ -465,7 +465,7 @@ std::pair<double, cyclus::Composition::Ptr> SeparationsFac::CompPossible_(int z,
   for(entry = comp.begin(); entry != comp.end(); ++entry){
     iso = entry->first;
     if (int(iso/1000.0) == z){
-      to_ret.insert(std::make_pair(iso,entry->second));
+      to_ret.insert(std::make_pair(iso, entry->second));
       amt += entry->second;
     }
   }
@@ -503,7 +503,9 @@ void SeparationsFac::Separate_(std::string out_commod){
     // push separated mat to stocks
     stocks_[out_commod].Push(mat->ExtractComp(poss_qty, poss_comp));
     // push leftover to remainder
-    remainder.push_back(mat);
+    if( mat->quantity() > 0 ){
+      remainder.push_back(mat);
+    }
   }
   
   if( remainder.size() > 0 ){

@@ -117,6 +117,13 @@ void SeparationsFacTest::TestInitState(SeparationsFac* fac) {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void SeparationsFacTest::TestCompPossible(int z, cyclus::CompMap comp_in, cyclus::CompMap comp_out, double amt){
+  std::pair<double, cyclus::Composition::Ptr> result = src_facility->CompPossible_(z, comp_in);
+  EXPECT_EQ(comp_out, result.second->mass());
+  EXPECT_EQ(amt, result.first);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, InitialState) {
   TestInitState(src_facility);
 }
@@ -240,6 +247,30 @@ TEST_F(SeparationsFacTest, CommodsInOut) {
   TestFinishProcessing(2, 2, out_c1);
   TestFinishProcessing(2, 2, out_c2);
   TestFinishProcessing(0, 2, out_c3);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TEST_F(SeparationsFacTest, CompPossible){
+  cyclus::CompMap u;
+  cyclus::CompMap u_pu;
+  cyclus::CompMap pu;
+  cyclus::CompMap empty;
+
+  double ten = 10.0;
+  u.insert(std::make_pair(92235, ten));
+
+  pu.insert(std::make_pair(94240, ten));
+
+  u_pu.insert(std::make_pair(92235, ten));
+  u_pu.insert(std::make_pair(94240, ten));
+
+  TestCompPossible(92, pu, empty, 0.0);
+  TestCompPossible(92, u, u, ten);
+  TestCompPossible(92, u_pu, u, ten);
+
+  TestCompPossible(94, u, empty, 0.0);
+  TestCompPossible(94, pu, pu, ten);
+  TestCompPossible(94, u_pu, pu, ten);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

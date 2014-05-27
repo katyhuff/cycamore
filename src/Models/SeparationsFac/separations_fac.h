@@ -277,7 +277,7 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @param z is the desired element to separate
   /// @param comp is the initial composition
   /// @return this returns the quantity and the composition to remove for separation
-  std::pair<double, cyclus::Composition::Ptr> CompPossible_(int z, cyclus::CompMap comp);
+  std::pair<double, cyclus::Composition::Ptr> const CompPossible_(int z, cyclus::CompMap comp);
 
   /// @brief conducts the separation step, separating as much material as 
   /// possible.

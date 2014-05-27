@@ -219,7 +219,7 @@ void SeparationsFac::EndLife_(){
                                       << nprocessing << " commods.";
   std::set<std::string>::const_iterator it;
   for (it = out_commods().begin(); it != out_commods().end(); it++){
-      Separate_(*it); // unload
+    Separate_(*it); // unload
   }
 }
 
@@ -231,8 +231,8 @@ void SeparationsFac::Tock(int time) {
   BeginProcessing_(); // place reserves into processing
 
   std::set<std::string>::const_iterator it;
-  for (it = out_commods().begin(); it != out_commods().end(); it++){
-      Separate_(*it); 
+  for (it = out_commods_.begin(); it != out_commods_.end(); it++){
+    Separate_(*it); 
   }
 
   PrintStatus("at the end of the tock ");
@@ -458,7 +458,7 @@ void SeparationsFac::BeginProcessing_() {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::pair<double, cyclus::Composition::Ptr> SeparationsFac::CompPossible_(int z, cyclus::CompMap comp){
-  std::map<int, double>::const_iterator entry;
+  cyclus::CompMap::const_iterator entry;
   int iso;
   double amt = 0;
   cyclus::CompMap to_ret;
@@ -476,26 +476,41 @@ std::pair<double, cyclus::Composition::Ptr> SeparationsFac::CompPossible_(int z,
 void SeparationsFac::Separate_(std::string out_commod){
   using cyclus::Material;
   using cyclus::ResourceBuff;
+  using cyclus::Manifest;
   using cyclus::Composition;
 
   // get z
   int z = out_elem(out_commod);
 
-  // separate
-  Material::Ptr mat = cyclus::ResCast<Material>(processing_[Ready_()].Pop());
-  std::pair<double, Composition::Ptr> poss = CompPossible_(z, mat->comp()->mass()); 
-  double poss_qty = poss.first;
-  Composition::Ptr poss_comp = poss.second;
+  // make holding pen
+  Manifest remainder;
+ 
+  // get separation goal
+  int n = ProcessingCount_();
+  std::cout<< n << std::endl;
+  for( int i = 0; i < n; ++i ){
+    std::cout<< i << std::endl;
+    Material::Ptr mat = cyclus::ResCast<Material>(processing_[Ready_()].Pop());
+    std::pair<double, Composition::Ptr> poss = CompPossible_(z, mat->comp()->mass()); 
+    double poss_qty = poss.first;
+    Composition::Ptr poss_comp = poss.second;
 
-  // move to stocks
-  std::map< std::string, cyclus::ResourceBuff >::const_iterator found;
-  found = stocks_.find(out_commod);
-  if( found == stocks_.end() ) {
-    stocks_[out_commod] = cyclus::ResourceBuff();
-  } 
-  stocks_[out_commod].Push(mat->ExtractComp(poss_qty, poss_comp));
+    // check that stocks has an out_commod buffer
+    std::map< std::string, cyclus::ResourceBuff >::const_iterator found;
+    found = stocks_.find(out_commod);
+    if( found == stocks_.end() ) {
+      stocks_[out_commod] = cyclus::ResourceBuff();
+    } 
 
-  processing_[Ready_()].Push(mat);
+    // push separated mat to stocks
+    stocks_[out_commod].Push(mat->ExtractComp(poss_qty, poss_comp));
+    // push leftover to remainder
+    remainder.push_back(mat);
+  }
+  
+  if( remainder.size() > 0 ){
+    processing_[Ready_()].PushAll(remainder);
+  }
 
   LOG(cyclus::LEV_DEBUG2, "SEPSF") << "SeparationsFac " << name() << " is separating material.";
 }

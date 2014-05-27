@@ -103,7 +103,7 @@ void SeparationsFac::InitFrom(cyclus::QueryEngine* qe) {
     std::string out_c = outpair->GetElementContent("outcommodity");
     int out_z = lexical_cast<int>(outpair->GetElementContent("z"));
     // add to map
-    out_commod_elem_map_.insert(make_pair(out_c, out_z));
+    out_commod_elem_map_.insert(std::make_pair(out_c, out_z));
     // also add to sets
     out_commods_.insert(out_c);
     out_elems_.insert(out_z);

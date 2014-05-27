@@ -212,6 +212,10 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @brief out commods
   inline void out_commods(std::set<std::string> s) { out_commods_ = s; }
   inline std::set<std::string> out_commods() const { return out_commods_; }
+
+  /// @brief out commod to elem map
+  inline void out_commod_elem_map(std::map<std::string, int> m) { out_commod_elem_map_ = m; }
+  inline std::map<std::string, int> out_commod_elem_map() const { return out_commod_elem_map_; }
   
   /// @brief the name of the in recipe
   inline void in_recipe(std::string s) { in_recipe_ = s; }

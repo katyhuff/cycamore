@@ -147,6 +147,7 @@ void SeparationsFac::InitFrom(SeparationsFac* m) {
   out_commods(m->out_commods());
   in_recipe(m->in_recipe());
   in_commod(m->in_commod());
+  out_commod_elem_map(m->out_commod_elem_map());
 
   // facility params
   process_time(m->process_time());
@@ -415,7 +416,7 @@ int SeparationsFac::out_elem(std::string commod) const {
   } else {
     std::string e = "SepFac: Invalid commodity. There is no element associated with : ";
     e+=commod;
-    throw cyclus::ValueError(e);
+    throw cyclus::KeyError(e);
   }
 }
 

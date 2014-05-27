@@ -43,6 +43,9 @@ void SeparationsFacTest::InitParameters() {
   out_elems.insert(out_z1);
   out_elems.insert(out_z2);
   out_elems.insert(out_z3);
+  out_commod_elem_map.insert(std::make_pair(out_c1, out_z1));
+  out_commod_elem_map.insert(std::make_pair(out_c2, out_z2));
+  out_commod_elem_map.insert(std::make_pair(out_c3, out_z3));
 
   process_time = 0;
   
@@ -66,6 +69,7 @@ void SeparationsFacTest::SetUpSourceFacility() {
   src_facility->process_time(process_time);
   src_facility->out_elems(out_elems);
   src_facility->out_commods(out_commods);
+  src_facility->out_commod_elem_map(out_commod_elem_map);
 
   src_facility->AddCommodity(commodity);
   src_facility->cyclus::CommodityProducer::SetCapacity(commodity, capacity);
@@ -104,13 +108,16 @@ void SeparationsFacTest::TestInitState(SeparationsFac* fac) {
   EXPECT_EQ(0, fac->ProcessingCount_());
   EXPECT_EQ(SeparationsFac::INITIAL, fac->phase());
 
-  cyclus::Commodity commod(commodity);
+  cyclus::Commodity commod = commodity;
   EXPECT_TRUE(fac->ProducesCommodity(commod));
   EXPECT_EQ(capacity, fac->ProductionCapacity(commod));
   EXPECT_EQ(cost, fac->ProductionCost(commod));
   EXPECT_EQ(out_z1, fac->out_elem(out_c1));
+  std::cout<< out_z1 << std::endl;
   EXPECT_EQ(out_z2, fac->out_elem(out_c2));
+  std::cout<< out_z2 << std::endl;
   EXPECT_EQ(out_z3, fac->out_elem(out_c3));
+  std::cout<< out_z3 << std::endl;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

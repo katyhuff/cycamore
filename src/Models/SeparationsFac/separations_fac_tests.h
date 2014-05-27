@@ -25,6 +25,7 @@ class SeparationsFacTest : public ::testing::Test {
   cyclus::CommodityRecipeContext crctx;
   std::set<std::string> out_commods;
   std::set<int> out_elems;
+  std::map<std::string, int> out_commod_elem_map;
 
   int process_time;
 

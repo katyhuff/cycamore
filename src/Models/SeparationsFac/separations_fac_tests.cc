@@ -237,9 +237,9 @@ TEST_F(SeparationsFacTest, CommodsInOut) {
   mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0,  in_c1);
-  TestFinishProcessing(2, 1, out_c1);
-  TestFinishProcessing(2, 1, out_c2);
-  TestFinishProcessing(2, 1, out_c3);
+  TestFinishProcessing(2, 2, out_c1);
+  TestFinishProcessing(2, 2, out_c2);
+  TestFinishProcessing(0, 2, out_c3);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

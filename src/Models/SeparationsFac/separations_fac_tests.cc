@@ -187,14 +187,14 @@ TEST_F(SeparationsFacTest, OutElems) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, Tick) {
-  EXPECT_EQ(src_facility->crctx().in_recipe(in_c1), in_r1);
+  int time = 1;
+  EXPECT_NO_THROW(src_facility->Tick(time));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, Tock) {
   int time = 1;
-  src_facility->Tock(time);
-  //EXPECT_NO_THROW(src_facility->Tock(time));
+  EXPECT_NO_THROW(src_facility->Tock(time));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

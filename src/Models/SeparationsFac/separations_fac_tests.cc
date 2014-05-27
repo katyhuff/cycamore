@@ -94,11 +94,10 @@ void SeparationsFacTest::TestBeginProcessing(int n_reserves, int n_processing, i
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void SeparationsFacTest::TestFinishProcessing(int n_processing, int n_stocks) {
-  src_facility->Separate_(out_c1);
+void SeparationsFacTest::TestFinishProcessing(int n_processing, int n_stocks, std::string commod) {
+  src_facility->Separate_(commod);
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
-  EXPECT_EQ(n_stocks, src_facility->StocksCount());
-  EXPECT_EQ(n_stocks, src_facility->StocksCount(out_c1));
+  EXPECT_EQ(n_stocks, src_facility->StocksCount(commod));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -194,7 +193,8 @@ TEST_F(SeparationsFacTest, Tick) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, Tock) {
   int time = 1;
-  EXPECT_NO_THROW(src_facility->Tock(time));
+  src_facility->Tock(time);
+  //EXPECT_NO_THROW(src_facility->Tock(time));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -237,7 +237,9 @@ TEST_F(SeparationsFacTest, CommodsInOut) {
   mat = Material::Create(src_facility, 2*mat_size, tc_.get()->GetRecipe(in_r1));
   TestAddCommods(mat, in_c1, 1);
   TestBeginProcessing(0, 2, 0,  in_c1);
-  TestFinishProcessing(0, 6);
+  TestFinishProcessing(2, 1, out_c1);
+  TestFinishProcessing(2, 1, out_c2);
+  TestFinishProcessing(2, 1, out_c3);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -59,7 +59,8 @@ class SeparationsFacTest : public ::testing::Test {
       
   /// @brief calls FabFuel_ and tests that the number of objects in processing_ is
   /// n_processing and the number of objects in stocks_ is n_stocks
-  void TestFinishProcessing(int n_processing, int n_stocks);
+  /// out commod is the commodity to separate
+  void TestFinishProcessing(int n_processing, int n_stocks, std::string out_commod);
 
   /// @brief calls NPossible_ and tests that the number of possible assemblies 
   /// is n_poss

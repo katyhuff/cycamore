@@ -10,6 +10,7 @@
 #include "cyc_limits.h"
 #include "error.h"
 #include "logger.h"
+#include "mat_query.h"
 
 #include "separations_fac.h"
 
@@ -386,6 +387,17 @@ int SeparationsFac::ProcessingCount_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int SeparationsFac::ProcessingQty_() {
+  int qty = 0;
+  std::map<int, cyclus::ResourceBuff>::const_iterator found;
+  found = processing_.find(Ready_());
+  if( found != processing_.end()) {
+    qty = processing_[Ready_()].quantity();
+  }
+  return qty;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int SeparationsFac::StocksCount() {
   int count = 0;
   std::map<std::string, cyclus::ResourceBuff>::const_iterator it;
@@ -457,11 +469,37 @@ void SeparationsFac::BeginProcessing_() {
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+std::pair<double, cyclus::Composition::Ptr> const SeparationsFac::CompPossible_(int z, cyclus::Material::Ptr mat) {
+  using cyclus::MatQuery;
+  using cyclus::CompMap;
+
+  MatQuery mq = MatQuery(mat);
+
+  CompMap::const_iterator entry;
+  CompMap comp = mat->comp()->mass();
+  CompMap to_ret;
+  int iso;
+  double tot = 0;
+  for(entry = comp.begin(); entry != comp.end(); ++entry){
+    iso = entry->first;
+    double amt = mq.mass(iso);
+    if (int(iso/1000.0) == z){
+      to_ret[iso] = amt;
+      tot += amt;
+    }
+  }
+  cyclus::Composition::Ptr return_ptr = cyclus::Composition::CreateFromMass(to_ret);
+  return std::make_pair(tot, return_ptr);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::pair<double, cyclus::Composition::Ptr> const SeparationsFac::CompPossible_(int z, cyclus::CompMap comp) {
-  cyclus::CompMap::const_iterator entry;
+  using cyclus::CompMap;
+
+  CompMap::const_iterator entry;
   int iso;
   double amt = 0;
-  cyclus::CompMap to_ret;
+  CompMap to_ret;
   for(entry = comp.begin(); entry != comp.end(); ++entry){
     iso = entry->first;
     if (int(iso/1000.0) == z){
@@ -478,6 +516,10 @@ void SeparationsFac::Separate_(std::string out_commod){
   using cyclus::ResourceBuff;
   using cyclus::Manifest;
   using cyclus::Composition;
+  using cyclus::CompMap;
+  using cyclus::compmath::Normalize;
+  using cyclus::compmath::Sub;
+  using cyclus::compmath::AllPositive;
 
   // get z
   int z = out_elem(out_commod);
@@ -489,21 +531,42 @@ void SeparationsFac::Separate_(std::string out_commod){
   int n = ProcessingCount_();
   for( int i = 0; i < n; ++i ){
     Material::Ptr mat = cyclus::ResCast<Material>(processing_[Ready_()].Pop());
-    std::pair<double, Composition::Ptr> poss = CompPossible_(z, mat->comp()->mass()); 
-    double poss_qty = poss.first;
-    Composition::Ptr poss_comp = poss.second;
+    std::pair<double, Composition::Ptr> poss = CompPossible_(z, mat); 
 
     // check that stocks has an out_commod buffer
     std::map< std::string, cyclus::ResourceBuff >::const_iterator found;
     found = stocks_.find(out_commod);
     if( found == stocks_.end() ) {
-      stocks_[out_commod] = cyclus::ResourceBuff();
+      stocks_.insert(std::make_pair(out_commod, cyclus::ResourceBuff()));
+      std::cout<<"=================inserting buff for commod = " << out_commod << std::endl;
     } 
 
     // push separated mat to stocks
-    stocks_[out_commod].Push(mat->ExtractComp(poss_qty, poss_comp));
+    std::cout<<"----------------extracting poss_qty = " << poss.first<<std::endl;
+    std::cout<<"----------------while mat_qty = " << mat->quantity() <<std::endl;
+    std::cout<<"----------------found poss_comp " << poss.second->id() << std::endl;
+    CompMap orig = mat->comp()->mass();
+    CompMap want = poss.second->mass();
+    Normalize(&orig, mat->quantity());
+    CompMap diff = Sub(orig, want);
+    std::cout<<"----------------diff u = " << diff[92235] << std::endl;
+    std::cout<<"----------------diff pu = " << diff[94240] << std::endl;
+    std::cout<<"----------------diff am = " << diff[95241] << std::endl;
+    std::cout<<"----------------diff all pos? " << AllPositive(diff) << std::endl;
+    if(poss.first < mat->quantity()){
+      Material::Ptr newmat = mat->ExtractComp(poss.first, poss.second);
+      std::cout<<"----------------new mat_qty = " << newmat->quantity() <<std::endl;
+      stocks_[out_commod].Push(newmat);
+    } else if (poss.first == mat->quantity()){ 
+      Material::Ptr newmat = mat->ExtractQty(poss.first);
+      std::cout<<"----------------new mat_qty = " << newmat->quantity() <<std::endl;
+      stocks_[out_commod].Push(newmat);
+    } else { 
+      throw cyclus::ValueError("Trying to extract too large an oject in separation");
+    }
+    std::cout<<"----------------extracted poss_qty = " << poss.first<<std::endl;
     // push leftover to remainder
-    if( mat->quantity() > 0 ){
+    if( mat->quantity() > cyclus::eps_rsrc() ){
       remainder.push_back(mat);
     }
   }

@@ -95,7 +95,9 @@ void SeparationsFacTest::TestBeginProcessing(int n_reserves, int n_processing, i
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void SeparationsFacTest::TestFinishProcessing(int n_processing, int n_stocks, std::string commod) {
+  int initial_stocks = src_facility->StocksCount();
   src_facility->Separate_(commod);
+  EXPECT_TRUE(src_facility->StocksCount() >= initial_stocks);
   EXPECT_EQ(n_processing, src_facility->ProcessingCount_());
   EXPECT_EQ(n_stocks, src_facility->StocksCount(commod));
 }
@@ -200,14 +202,25 @@ TEST_F(SeparationsFacTest, Tick) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, Tock) {
   int time = 1;
-  src_facility->Tock(time);
-  //EXPECT_NO_THROW(src_facility->Tock(time));
+  EXPECT_NO_THROW(src_facility->Tock(time));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEST_F(SeparationsFacTest, StartProcess) {
   int t = tc_.get()->time();
   src_facility->phase(SeparationsFac::PROCESS);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TEST_F(SeparationsFacTest, ExtractZero) {
+  using cyclus::Material;
+  using cyclus::Composition;
+
+  double mat_size = 10.0; 
+  Material::Ptr mat = Material::Create(src_facility, mat_size, tc_.get()->GetRecipe(in_r1));
+  EXPECT_NO_THROW(mat->ExtractComp(0.0, mat->comp()));
+  cyclus::CompMap emptycomp;
+  EXPECT_NO_THROW(mat->ExtractComp(3.333, Composition::CreateFromMass(emptycomp)));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -179,6 +179,9 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @param when gives text to insert (i.e. "at the beginning of the tock")
   void PrintStatus(std::string when);
 
+  /// @return the total amt of commods in processing
+  int ProcessingQty_();
+
   /// @return the total number of commods in processing
   int ProcessingCount_();
 
@@ -278,6 +281,12 @@ class SeparationsFac : public cyclus::FacilityModel,
   /// @param comp is the initial composition
   /// @return this returns the quantity and the composition to remove for separation
   std::pair<double, cyclus::Composition::Ptr> const CompPossible_(int z, cyclus::CompMap comp);
+
+  /// @brief determines the possible amount to separate
+  /// @param z is the desired element to separate
+  /// @param mat is the initial material
+  /// @return this returns the quantity and the composition to remove for separation
+  std::pair<double, cyclus::Composition::Ptr> const CompPossible_(int z, cyclus::Material::Ptr mat);
 
   /// @brief conducts the separation step, separating as much material as 
   /// possible.

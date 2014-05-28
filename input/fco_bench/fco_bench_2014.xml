@@ -269,11 +269,11 @@
         </inpair>
         <outpair>
           <outcommodity>rep_lwr_tru</outcommodity>
-          <outrecipe>rep_lwr_tru_recipe</outrecipe>
+          <z>94</z>
         </outpair>
         <outpair>
           <outcommodity>rep_lwr_u</outcommodity>
-          <outrecipe>rep_lwr_u_recipe</outrecipe>
+          <z>92</z>
         </outpair>
         <processtime>0</processtime>
         <capacity>2000000</capacity>
@@ -298,11 +298,11 @@
         </inpair>
         <outpair>
           <outcommodity>rep_sfr_tru</outcommodity>
-          <outrecipe>rep_sfr_tru_recipe</outrecipe>
+          <z>94</z>
         </outpair>
         <outpair>
           <outcommodity>rep_sfr_u</outcommodity>
-          <outrecipe>rep_sfr_u_recipe</outrecipe>
+          <z>92</z>
         </outpair>
         <processtime>0</processtime>
         <capacity>2000000</capacity>

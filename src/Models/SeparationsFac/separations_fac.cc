@@ -538,33 +538,23 @@ void SeparationsFac::Separate_(std::string out_commod){
     found = stocks_.find(out_commod);
     if( found == stocks_.end() ) {
       stocks_.insert(std::make_pair(out_commod, cyclus::ResourceBuff()));
-      std::cout<<"=================inserting buff for commod = " << out_commod << std::endl;
     } 
 
     // push separated mat to stocks
-    std::cout<<"----------------extracting poss_qty = " << poss.first<<std::endl;
-    std::cout<<"----------------while mat_qty = " << mat->quantity() <<std::endl;
-    std::cout<<"----------------found poss_comp " << poss.second->id() << std::endl;
     CompMap orig = mat->comp()->mass();
     CompMap want = poss.second->mass();
     Normalize(&orig, mat->quantity());
     CompMap diff = Sub(orig, want);
-    std::cout<<"----------------diff u = " << diff[92235] << std::endl;
-    std::cout<<"----------------diff pu = " << diff[94240] << std::endl;
-    std::cout<<"----------------diff am = " << diff[95241] << std::endl;
-    std::cout<<"----------------diff all pos? " << AllPositive(diff) << std::endl;
     if(poss.first < mat->quantity()){
       Material::Ptr newmat = mat->ExtractComp(poss.first, poss.second);
-      std::cout<<"----------------new mat_qty = " << newmat->quantity() <<std::endl;
       stocks_[out_commod].Push(newmat);
-    } else if (poss.first == mat->quantity()){ 
+    } else if (poss.first == mat->quantity()){  
+      // this is to avoid an issue with segfaults extracting near-equal objects 
       Material::Ptr newmat = mat->ExtractQty(poss.first);
-      std::cout<<"----------------new mat_qty = " << newmat->quantity() <<std::endl;
       stocks_[out_commod].Push(newmat);
     } else { 
       throw cyclus::ValueError("Trying to extract too large an oject in separation");
     }
-    std::cout<<"----------------extracted poss_qty = " << poss.first<<std::endl;
     // push leftover to remainder
     if( mat->quantity() > cyclus::eps_rsrc() ){
       remainder.push_back(mat);

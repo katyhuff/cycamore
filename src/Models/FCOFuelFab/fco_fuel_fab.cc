@@ -630,7 +630,12 @@ std::set<std::string> FCOFuelFab::prefs(int iso){
   if(it != prefs_.end()){
     preflist = it->second;
   } else { 
-    throw cyclus::ValueError("Invalid pref iso. There is no source named for this iso.");
+    std::stringstream ss;
+    ss << cyclus::FacilityModel::str();
+    ss << "Invalid pref iso. There is no source named iso : " 
+       << iso
+       << ".";
+    throw cyclus::KeyError(ss.str());
   }
   return preflist;
 }

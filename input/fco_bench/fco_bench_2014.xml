@@ -138,7 +138,12 @@
           <outrecipe>fresh_sfr_fuel_recipe</outrecipe>
         </outpair>
         <preflist>
-          <prefiso>94240</prefiso>
+          <prefiso>95241</prefiso>
+          <sourcecommod>rep_sfr_tru</sourcecommod>
+          <sourcecommod>rep_lwr_tru</sourcecommod>
+        </preflist>
+        <preflist>
+          <prefiso>94239</prefiso>
           <sourcecommod>rep_sfr_tru</sourcecommod>
           <sourcecommod>rep_lwr_tru</sourcecommod>
         </preflist>
@@ -462,10 +467,6 @@
     <isotope>
       <id>95241</id>
       <comp>0.48</comp>
-    </isotope>
-    <isotope>
-      <id>43099</id>
-      <comp>0</comp>
     </isotope>
   </recipe>
   <recipe>

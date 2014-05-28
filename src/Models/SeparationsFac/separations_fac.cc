@@ -586,9 +586,7 @@ SeparationsFac::GetOrder_(double size) {
   
   std::string recipe;
   Material::Ptr mat;
-  recipe = crctx_.in_recipe(in_commod());
-  assert(recipe != "");
-  mat = Material::CreateUntracked(size, context()->GetRecipe(recipe));
+  mat = Material::CreateUntracked(size, context()->GetRecipe(in_recipe_));
   port->AddRequest(mat, this, in_commod());
   
   LOG(cyclus::LEV_DEBUG3, "SEPSF") << "SeparationsFac " << name()

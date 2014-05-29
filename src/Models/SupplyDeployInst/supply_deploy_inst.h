@@ -1,8 +1,11 @@
-// Deployinst.h
+// supply_deploy_inst.h
 #ifndef _SUPPLYDEPLOYINST_H
 #define _SUPPLYDEPLOYINST_H
 
 #include "inst_model.h"
+#include "builder.h"
+#include "commodity_producer_manager.h"
+#include "commodity_producer.h"
 #include "supply_demand_manager.h"
 
 #include <utility>

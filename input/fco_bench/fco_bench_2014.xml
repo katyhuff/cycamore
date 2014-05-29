@@ -400,15 +400,7 @@
         </entry>
       </initialfacilitylist>
       <model>
-        <SupplyDeployInst>
-          <rule>
-            <decomm>LWR</decomm>
-            <commodity>fresh_sfr_fuel</commodity>
-            <quantity>100</quantity>
-            <replacement>SFR</replacement>
-            <rate>3</rate>
-          </rule>
-        </SupplyDeployInst>
+        <ManagerInst/>
       </model>
     </institution>
   </region>

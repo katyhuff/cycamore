@@ -16,15 +16,23 @@ namespace cycamore {
 
 /**
    @class SupplyDeployInst
+
+   @section introduction Introduction
+
    The SupplyDeployInst class inherits from the InstModel
    class and is dynamically loaded by the Model class when requested.
+
+   @second detailedBehavior Detailed Behavior
 
    This model implements a simple institution model that decomissions
    facilities according to a commodity availability rule specified in the input 
    file. Then, it optionally replaces those facilities with some number of 
    another prototype.
  */
-class SupplyDeployInst : public cyclus::InstModel {
+class SupplyDeployInst : public cyclus::InstModel,
+  public cyclus::CommodityProducerManager,
+  public cyclus::Builder {
+
   /* --------------------
    * all MODEL classes have these members
    * --------------------

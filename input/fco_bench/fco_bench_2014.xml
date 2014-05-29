@@ -172,7 +172,7 @@
 
   <facility>
     <name>LWR</name>
-    <lifetime>1</lifetime>
+    <lifetime>60</lifetime>
     <model>
       <BatchReactor>
         <fuel>
@@ -197,7 +197,7 @@
 
   <facility>
     <name>SFR</name>
-    <lifetime>1</lifetime>
+    <lifetime>60</lifetime>
     <model>
       <BatchReactor>
         <fuel>
@@ -340,7 +340,7 @@
           <name>power</name>
           <demand>
             <type>linear</type>
-            <parameters>1 1</parameters>
+            <parameters>0 1</parameters>
           </demand>
         </commodity>
       </GrowthRegion>
@@ -400,7 +400,15 @@
         </entry>
       </initialfacilitylist>
       <model>
-        <ManagerInst/>
+        <SupplyDeployInst>
+          <rule>
+            <decomm>LWR</decomm>
+            <commodity>fresh_sfr_fuel</commodity>
+            <quantity>100</quantity>
+            <replacement>SFR</replacement>
+            <rate>3</rate>
+          </rule>
+        </SupplyDeployInst>
       </model>
     </institution>
   </region>

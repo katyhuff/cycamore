@@ -18,8 +18,8 @@ SupplyDeployInst::~SupplyDeployInst() {}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::string SupplyDeployInst::schema() {
   return
-    "<element name=\"decomissionrule\">       \n"
-    "  <element name=\"prototype\">           \n"
+    "<element name=\"rule\">                  \n"
+    "  <element name=\"decomm\">              \n"
     "    <data type=\"string\"/>              \n"
     "  </element>                             \n"
     "  <element name=\"commodity\">           \n"
@@ -28,16 +28,12 @@ std::string SupplyDeployInst::schema() {
     "  <element name=\"quantity\">            \n"
     "    <data type=\"double\"/>              \n"
     "  </element>                             \n"
-    "  <optional>                             \n"
     "  <element name=\"replacement\">         \n"
     "    <data type=\"string\"/>              \n"
     "  </element>                             \n"
-    "  </optional>                            \n"
-    "  <optional>                             \n"
-    "  <element name=\"repl_rate\">           \n"
+    "  <element name=\"rate\">                \n"
     "    <data type=\"nonNegativeInteger\"/>  \n"
     "  </element>                             \n"
-    "  </optional>                            \n"
     "</element>                               \n";
 }
 
@@ -47,14 +43,12 @@ void SupplyDeployInst::InitFrom(cyclus::QueryEngine* qe) {
   qe = qe->QueryElement("model/" + ModelImpl());
 
   using std::string;
-  using cyclus::GetOptionalQuery;
+  using boost::lexical_cast;
 
-  string query = "decomissionrule";
-
-  cyclus::QueryEngine* rule = qe->QueryElement(query);
+  cyclus::QueryEngine* rule = qe->QueryElement("rule", 0);
 
   // required facility data
-  string prototype = rule->GetElementContent("prototype");
+  string prototype = rule->GetElementContent("decomm");
   to_decomm(prototype);
   string commod = rule->GetElementContent("commodity");
   rule_commod(commod);
@@ -62,9 +56,9 @@ void SupplyDeployInst::InitFrom(cyclus::QueryEngine* qe) {
   rule_quantity(quantity);
 
   // optional facility data
-  string repl = GetOptionalQuery<string>(rule, "replacement", replacement());
+  string repl = rule->GetElementContent("replacement");
   replacement(repl);
-  int rate = GetOptionalQuery<int>(rule, "repl_rate", repl_rate());
+  int rate = lexical_cast<int>(rule->GetElementContent("rate"));
   repl_rate(rate);
 }
 
